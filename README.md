@@ -1,4 +1,4 @@
 # TextEventVisualizer
 
 ## Developer setup
-dotnet 8
+dotnet 7
