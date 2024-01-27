@@ -1,0 +1,16 @@
+﻿@using TextEventVisualizer.Data;
+
+<button @onclick="onButtonClickHandler">Scrape</button>
+
+@code{
+    private string key = string.Empty;
+    protected override async Task OnInitializedAsync()
+    {
+
+    }
+
+    public async void onButtonClickHandler()
+    {
+        await WebScraper.Scrape();
+    }
+}

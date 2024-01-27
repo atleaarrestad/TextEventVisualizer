@@ -1,8 +1,23 @@
 ﻿@page "/datapipeline"
+@using TextEventVisualizer.Data
+@using TextEventVisualizer.Components.Tabs
+@using TextEventVisualizer.Components.DataCollection
 
 <PageTitle>Data Pipeline</PageTitle>
 
-<h1>Data Pipeline</h1>
+<TabSet>
+    <Tab Title="Data collection">
+        <DataCollector></DataCollector>
+    </Tab>
+    <Tab Title="Data parsing??">
+        <h3>Profile</h3>
+        <p>Welcome to the Profile tab.</p>
+    </Tab>
+    <Tab Title="something else cool">
+        <h3>Messages</h3>
+        <p>Welcome to the Messages tab.</p>
+    </Tab>
+</TabSet>
 
-<p>Page for monitoring and executing parts of the pipeline</p>
+
 
