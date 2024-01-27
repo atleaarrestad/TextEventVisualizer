@@ -225,3 +225,4 @@ ClientBin/
 [Ss]tyle[Cc]op.*
 _ReSharper.*/
 [Tt]humbs.db
+TextEventVisualizer/database.db

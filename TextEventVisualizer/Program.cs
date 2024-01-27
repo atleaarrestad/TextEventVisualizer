@@ -1,6 +1,7 @@
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
+using Microsoft.EntityFrameworkCore;
 using TextEventVisualizer.Data;
+using TextEventVisualizer.Repositories;
+using TextEventVisualizer.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,8 +9,38 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddSingleton<WeatherForecastService>();
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+{
+    options.UseSqlite("Data Source=database.db");
+    options.EnableServiceProviderCaching(false);
+});
+
+
+//repositories
+builder.Services.AddScoped<IArticleRepository, ArticleRepository>();
+
+//services
+builder.Services.AddScoped<IArticleService, ArticleService>();
 
 var app = builder.Build();
+
+
+// Database migrations and initial creation
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+
+    try
+    {
+        var dbContext = services.GetRequiredService<ApplicationDbContext>();
+        dbContext.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error occurred while applying migrations: {ex.Message}");
+    }
+}
+
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
