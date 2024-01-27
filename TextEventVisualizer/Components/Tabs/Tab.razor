@@ -1,0 +1,28 @@
+﻿@inherits Components.Tabs.TabBase
+@using Components.Tabs
+
+
+<div class="@($"{ActiveClass} tab-pane")" role="tabpanel">
+    @ChildContent
+</div>
+
+@code {
+    [CascadingParameter]
+    public TabSet Parent { get; set; }
+
+    [Parameter]
+    public string Title { get; set; }
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    protected override void OnInitialized()
+    {
+        if (Parent == null)
+        {
+            throw new InvalidOperationException("Tab components require a TabSet parent component.");
+        }
+
+        Parent.AddTab(this);
+    }
+}
