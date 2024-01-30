@@ -3,42 +3,104 @@
 @using Services;
 @inject IArticleService ArticleService
 
-<button @onclick="OnAddDummyDataClickHandler">Add dummy articles to database</button>
-<button @onclick="onScrapeClickHandler">Test webscrape and save result to database</button>
-<div class="flex-column-container">
-    @foreach (var article in articles)
-    {
-        <div class="flex-grow center-children">
-            <h1>@article.Title</h1>
-            <textarea class="max-width">{@article.Content}</textarea>
+<div class="wrapper">
+    <div class="container-row">
+        <div class="container scraped">
+            <span class="count">@scrapedArticlesCount</span>
+            <span class="label">Articles with content gathered from the web</span>
         </div>
-    }
+
+        <div class="container unscraped">
+            <span class="count">@unScrapedArticlesCount</span>
+            <span class="label">Articles waiting for content to be gathered</span>
+            <div class="container-row">
+                <button @onclick="onScrapeClickHandler" class="scraper-button" style="margin-right: 8px">Start gathering process</button>
+                <button @onclick="OnAddDummyDataClickHandler" class="scraper-button">Add dummy articles to database</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container logs">
+        <div class="log-header">
+            <div class="log-title">Webscraper logs</div>
+            <div class="spinner-container">
+                @if (isScraperRunning)
+                {
+                    <div class="spinner"></div>
+                }
+            </div>
+        </div>
+        <div class="log-entries">
+            @foreach (var log in logs)
+            {
+                <div class="log-entry">@log</div>
+            }
+        </div>
+    </div>
 </div>
+
 
 @code{
     private List<Article> articles = new();
+    private int scrapedArticlesCount = 0;
+    private int unScrapedArticlesCount = 0;
+    private List<string> logs = new();
+    private bool isScraperRunning;
+
+    protected async override void OnInitialized()
+    {
+        scrapedArticlesCount = await ArticleService.GetScrapedArticlesCountAsync();
+        unScrapedArticlesCount = await ArticleService.GetUnscrapedArticlesCountAsync();
+    }
 
     public async void onScrapeClickHandler()
     {
+        isScraperRunning = true;
         var unscrapedArticles = await ArticleService.GetUnscrapedArticlesAsync();
 
         foreach (var article in unscrapedArticles)
         {
+            await Task.Delay(4000);
+            AddLog(4000);
+
             var result = await WebScraper.Scrape(article.WebUrl);
-            article.Content = result;
-            article.HasBeenScraped = true;
-            await ArticleService.UpdateArticleAsync(article);
+            if (result.Length > 0)
+            {
+                article.Content = result;
+                article.HasBeenScraped = true;
+                await ArticleService.UpdateArticleAsync(article);
 
-            // just for showing article on scren after scraping. will remove
-            articles.Add(article);
+                articles.Add(article);
+                scrapedArticlesCount += 1;
+            }
+            
+            unScrapedArticlesCount -= 1;
+            AddLog(article);
         }
+        isScraperRunning = false;
         StateHasChanged();
-
-
     }
 
     public async void OnAddDummyDataClickHandler()
     {
         await ArticleService.AddDummyArticles();
+        unScrapedArticlesCount = await ArticleService.GetUnscrapedArticlesCountAsync();
+    }
+
+    private void AddLog(Article article){
+        var logInfo = article.Content.Length > 0
+            ? $"Successfully scraped {article.Content.Length} characters - updated database"
+            : "Failure, content is empty";
+
+        var log = $"{DateTime.Now.ToString("G")} - {logInfo}";
+        this.logs.Insert(0, log);
+        StateHasChanged();
+    }
+
+    private void AddLog(int delayInMilliseconds)
+    {
+        var log = $"{DateTime.Now.ToString("G")} - finished waiting {delayInMilliseconds/1000} seconds to reduce load on external website";
+        this.logs.Insert(0, log);
+        StateHasChanged();
     }
 }

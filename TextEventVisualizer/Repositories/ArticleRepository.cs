@@ -48,6 +48,16 @@ namespace TextEventVisualizer.Repositories
                 await _context.SaveChangesAsync();
             }
         }
+
+        public async Task<int> GetUnscrapedArticlesCountAsync()
+        {
+            return await _context.Articles.CountAsync(article => !article.HasBeenScraped);
+        }
+
+        public async Task<int> GetScrapedArticlesCountAsync()
+        {
+            return await _context.Articles.CountAsync(article => article.HasBeenScraped);
+        }
     }
 
 }

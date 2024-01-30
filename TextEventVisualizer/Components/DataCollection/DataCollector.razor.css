@@ -1,13 +1,129 @@
-﻿.flex-column-container{
+﻿
+.wrapper {
     display: flex;
+    padding: 20px;
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     flex-direction: column;
-}
-.center-children{
-    align-items: center;
-}
-.max-width{
+    align-items: stretch;
     width: 100%;
 }
-.flex-grow {
-    flex: 1;
+.container-row {
+    display: flex;
+    justify-content: space-between;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    background-color: white;
+}
+
+    .container.scraped {
+        border-right: 1px solid #ccc;
+    }
+
+    .container.unscraped {
+        border-left: 1px solid #ccc;
+    }
+
+.count {
+    font-size: 2em;
+    font-weight: bold;
+}
+
+.label {
+    margin-top: 5px;
+    font-size: 1em;
+    color: #555;
+}
+
+.scraper-button {
+    margin-top: 10px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    background-color: #007bff;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+    .scraper-button:hover {
+        background-color: #0056b3;
+    }
+
+.scraped {
+    color: #4caf50;
+}
+
+.unscraped {
+    color: #f44336;
+}
+
+
+.logs {
+    margin-top: 20px;
+    background-color: #f9f9f9;
+    min-width: 100%;
+    height: 300px;
+    min-height: 30svh;
+    max-height: 50svh;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+
+}
+.log-header {
+    display: flex; 
+    align-items: center; 
+}
+.log-title {
+    padding: 10px;
+    font-size: 1.2em;
+    border-bottom: 2px solid #ccc;
+    text-align: center;
+}
+
+.log-entries {
+    padding: 10px;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+.log-entry {
+    margin-bottom: 5px;
+    padding: 5px;
+    border-radius: 3px;
+    background-color: #fff;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.spinner {
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border-left-color: #09f;
+    animation: spin 1s infinite ease;
+}
+
+.spinner-container {
+    width: 36px; 
+    height: 36px; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
