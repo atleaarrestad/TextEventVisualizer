@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TextEventVisualizer.Data.Models;
 using TextEventVisualizer.Data;
+using TextEventVisualizer.Models;
 
 namespace TextEventVisualizer.Repositories
 {
@@ -18,9 +18,13 @@ namespace TextEventVisualizer.Repositories
             return await _context.Articles.FindAsync(id);
         }
 
-        public async Task<IEnumerable<Article>> GetAllArticlesAsync()
+        public async Task<List<Article>> GetUnscrapedArticlesAsync()
         {
-            return await _context.Articles.ToListAsync();
+            return await _context.Articles.Where(article => !article.HasBeenScraped).ToListAsync();
+        }
+        public async Task<List<Article>> GetScrapedArticlesAsync()
+        {
+            return await _context.Articles.Where(article => article.HasBeenScraped).ToListAsync();
         }
 
         public async Task AddArticleAsync(Article article)

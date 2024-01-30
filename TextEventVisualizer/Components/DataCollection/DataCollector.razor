@@ -1,16 +1,44 @@
-﻿@using TextEventVisualizer.Data;
+﻿@using Data;
+@using Models;
+@using Services;
+@inject IArticleService ArticleService
 
-<button @onclick="onButtonClickHandler">Scrape</button>
+<button @onclick="OnAddDummyDataClickHandler">Add dummy articles to database</button>
+<button @onclick="onScrapeClickHandler">Test webscrape and save result to database</button>
+<div class="flex-column-container">
+    @foreach (var article in articles)
+    {
+        <div class="flex-grow center-children">
+            <h1>@article.Title</h1>
+            <textarea class="max-width">{@article.Content}</textarea>
+        </div>
+    }
+</div>
 
 @code{
-    private string key = string.Empty;
-    protected override async Task OnInitializedAsync()
+    private List<Article> articles = new();
+
+    public async void onScrapeClickHandler()
     {
+        var unscrapedArticles = await ArticleService.GetUnscrapedArticlesAsync();
+
+        foreach (var article in unscrapedArticles)
+        {
+            var result = await WebScraper.Scrape(article.WebUrl);
+            article.Content = result;
+            article.HasBeenScraped = true;
+            await ArticleService.UpdateArticleAsync(article);
+
+            // just for showing article on scren after scraping. will remove
+            articles.Add(article);
+        }
+        StateHasChanged();
+
 
     }
 
-    public async void onButtonClickHandler()
+    public async void OnAddDummyDataClickHandler()
     {
-        await WebScraper.Scrape();
+        await ArticleService.AddDummyArticles();
     }
 }

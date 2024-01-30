@@ -1,11 +1,12 @@
-﻿using TextEventVisualizer.Data.Models;
+﻿using TextEventVisualizer.Models;
 
 namespace TextEventVisualizer.Repositories
 {
     public interface IArticleRepository
     {
         Task<Article> GetArticleAsync(int id);
-        Task<IEnumerable<Article>> GetAllArticlesAsync();
+        Task<List<Article>> GetUnscrapedArticlesAsync();
+        Task<List<Article>> GetScrapedArticlesAsync();
         Task AddArticleAsync(Article article);
         Task UpdateArticleAsync(Article article);
         Task DeleteArticleAsync(int id);

@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TextEventVisualizer.Data.Models;
+using TextEventVisualizer.Models;
 
 namespace TextEventVisualizer.Data
 {
