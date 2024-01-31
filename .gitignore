@@ -226,3 +226,6 @@ ClientBin/
 _ReSharper.*/
 [Tt]humbs.db
 TextEventVisualizer/database.db
+TextEventVisualizer/database.db-shm
+TextEventVisualizer/database.db-wal
+TextEventVisualizer/Data/news_articles.json

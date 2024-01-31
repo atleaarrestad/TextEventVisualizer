@@ -1,23 +1,48 @@
 ﻿@using Data;
 @using Models;
 @using Services;
-@inject IArticleService ArticleService
+@inject IArticleService ArticleService;
+@inject IJsonService JsonService;
 
 <div class="wrapper">
     <div class="container-row">
         <div class="container scraped">
-            <span class="count">@scrapedArticlesCount</span>
-            <span class="label">Articles with content gathered from the web</span>
+            <span class="count">@(scrapedArticlesCount + @unScrapedArticlesCount)</span>
+            <span class="label">Skeleton articles added from dataset</span>
+            <button @onclick="OnParseJsonClickHandler" class="scraper-button" style="margin-right: 8px">Start Add articles from JSON</button>
         </div>
 
         <div class="container unscraped">
             <span class="count">@unScrapedArticlesCount</span>
             <span class="label">Articles waiting for content to be gathered</span>
+            <select id="categoryDropdown" name="categoryDropdown" @bind="selectedCategory">
+                @foreach (var category in categories)
+                {
+                    <option value="@category">@category</option>
+                }
+            </select>
             <div class="container-row">
-                <button @onclick="onScrapeClickHandler" class="scraper-button" style="margin-right: 8px">Start gathering process</button>
-                <button @onclick="OnAddDummyDataClickHandler" class="scraper-button">Add dummy articles to database</button>
+                <label for="fromDate">From:</label>
+                <input type="date" id="fromDate" name="fromDate" @bind="fromDate">
+
+                <label for="toDate">To:</label>
+                <input type="date" id="toDate" name="toDate" @bind="toDate">
+            </div>
+
+
+
+
+            <div class="container-row">
+                <button @onclick="OnScrapeClickHandler" class="scraper-button" style="margin-right: 8px">Start gathering process</button>
             </div>
         </div>
+
+        <div class="container scraped">
+            <span class="count">@scrapedArticlesCount</span>
+            <span class="label">Articles with content gathered from the web</span>
+            <span class="label">Ready for further processing by NLP</span>
+        </div>
+
     </div>
 
     <div class="container logs">
@@ -44,16 +69,60 @@
     private List<Article> articles = new();
     private int scrapedArticlesCount = 0;
     private int unScrapedArticlesCount = 0;
+    private List<string> categories = new();
     private List<string> logs = new();
     private bool isScraperRunning;
+    private string _selectedCategory = string.Empty;
+    private DateTime? _fromDate;
+    private DateTime? _toDate;
+
+    private string selectedCategory
+    {
+        get => _selectedCategory;
+        set
+        {
+            if (_selectedCategory != value)
+            {
+                _selectedCategory = value;
+                UpdateUnscrapedCount();
+            }
+        }
+    }
+
+    private DateTime? fromDate
+    {
+        get => _fromDate;
+        set
+        {
+            if (_fromDate != value)
+            {
+                _fromDate = value;
+                UpdateUnscrapedCount();
+            }
+        }
+    }
+
+    private DateTime? toDate
+    {
+        get => _toDate;
+        set
+        {
+            if (_toDate != value)
+            {
+                _toDate = value;
+                UpdateUnscrapedCount();
+            }
+        }
+    }
 
     protected async override void OnInitialized()
     {
         scrapedArticlesCount = await ArticleService.GetScrapedArticlesCountAsync();
         unScrapedArticlesCount = await ArticleService.GetUnscrapedArticlesCountAsync();
+        categories = await ArticleService.GetUniqueCategories();
     }
 
-    public async void onScrapeClickHandler()
+    public async void OnScrapeClickHandler()
     {
         isScraperRunning = true;
         var unscrapedArticles = await ArticleService.GetUnscrapedArticlesAsync();
@@ -73,18 +142,21 @@
                 articles.Add(article);
                 scrapedArticlesCount += 1;
             }
-            
+
             unScrapedArticlesCount -= 1;
             AddLog(article);
         }
         isScraperRunning = false;
         StateHasChanged();
     }
-
-    public async void OnAddDummyDataClickHandler()
+    private void UpdateUnscrapedCount()
     {
-        await ArticleService.AddDummyArticles();
-        unScrapedArticlesCount = await ArticleService.GetUnscrapedArticlesCountAsync();
+        Console.WriteLine($"Category: {selectedCategory}, From: {fromDate}, To: {toDate}");
+    }
+
+    public async void OnParseJsonClickHandler()
+    {
+        await JsonService.ExtractArticlesFromJsonFile();
     }
 
     private void AddLog(Article article){

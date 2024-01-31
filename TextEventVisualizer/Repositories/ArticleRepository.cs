@@ -58,6 +58,23 @@ namespace TextEventVisualizer.Repositories
         {
             return await _context.Articles.CountAsync(article => article.HasBeenScraped);
         }
+
+        public Task AddArticleBatchAsync(List<Article> articles)
+        {
+            foreach (var article in articles)
+            {
+                _context.Articles.Add(article);
+            }
+            return _context.SaveChangesAsync();
+        }
+
+        public Task<List<string>> GetUniqueCategories()
+        {
+            return _context.Articles
+                .Select(a => a.Category)
+                .Distinct()
+                .ToListAsync();
+        }
     }
 
 }

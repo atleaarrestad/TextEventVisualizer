@@ -10,9 +10,10 @@ namespace TextEventVisualizer.Services
         Task<List<Article>> GetScrapedArticlesAsync();
         Task<int> GetScrapedArticlesCountAsync();
         Task AddArticleAsync(Article article);
+        Task AddArticleBatchAsync(List<Article> articles);
         Task UpdateArticleAsync(Article article);
         Task DeleteArticleAsync(int id);
-        public Task AddDummyArticles();
+        Task<List<string>> GetUniqueCategories();
 
     }
 }

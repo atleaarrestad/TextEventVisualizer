@@ -21,6 +21,7 @@ builder.Services.AddScoped<IArticleRepository, ArticleRepository>();
 
 //services
 builder.Services.AddScoped<IArticleService, ArticleService>();
+builder.Services.AddScoped<IJsonService, JsonService>();
 
 var app = builder.Build();
 
