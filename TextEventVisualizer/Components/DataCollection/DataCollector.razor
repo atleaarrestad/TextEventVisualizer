@@ -7,26 +7,30 @@
 <div class="wrapper">
     <div class="container-row">
         <div class="container scraped">
-            <span class="count">@(scrapedArticlesCount + @unScrapedArticlesCount)</span>
+            <span class="count">@unScrapedArticlesCount</span>
             <span class="label">Skeleton articles added from dataset</span>
             <button @onclick="OnParseJsonClickHandler" class="scraper-button" style="margin-right: 8px">Start Add articles from JSON</button>
         </div>
 
         <div class="container unscraped">
-            <span class="count">@unScrapedArticlesCount</span>
-            <span class="label">Articles waiting for content to be gathered</span>
-            <select id="categoryDropdown" name="categoryDropdown" @bind="selectedCategory">
-                @foreach (var category in categories)
-                {
-                    <option value="@category">@category</option>
-                }
-            </select>
-            <div class="container-row">
-                <label for="fromDate">From:</label>
-                <input type="date" id="fromDate" name="fromDate" @bind="fromDate">
 
-                <label for="toDate">To:</label>
-                <input type="date" id="toDate" name="toDate" @bind="toDate">
+            <span class="count">@unScrapedArticlesCountFiltered</span>
+            <span class="label">Articles waiting for content to be gathered</span>
+
+            <div class="container-column">
+                <select id="categoryDropdown" name="categoryDropdown" @bind="selectedCategory">
+                    @foreach (var category in categories)
+                    {
+                        <option value="@category">@category</option>
+                    }
+                </select>
+                <div class="container-row">
+                    <label for="fromDate">From:</label>
+                    <input type="date" id="fromDate" name="fromDate" @bind="fromDate">
+
+                    <label for="toDate">To:</label>
+                    <input type="date" id="toDate" name="toDate" @bind="toDate">
+                </div>
             </div>
 
 
@@ -69,6 +73,7 @@
     private List<Article> articles = new();
     private int scrapedArticlesCount = 0;
     private int unScrapedArticlesCount = 0;
+    private int unScrapedArticlesCountFiltered = 0;
     private List<string> categories = new();
     private List<string> logs = new();
     private bool isScraperRunning;
@@ -84,7 +89,7 @@
             if (_selectedCategory != value)
             {
                 _selectedCategory = value;
-                UpdateUnscrapedCount();
+                UpdateUnscrapedFilteredCount();
             }
         }
     }
@@ -97,7 +102,7 @@
             if (_fromDate != value)
             {
                 _fromDate = value;
-                UpdateUnscrapedCount();
+                UpdateUnscrapedFilteredCount();
             }
         }
     }
@@ -110,7 +115,7 @@
             if (_toDate != value)
             {
                 _toDate = value;
-                UpdateUnscrapedCount();
+                UpdateUnscrapedFilteredCount();
             }
         }
     }
@@ -120,6 +125,10 @@
         scrapedArticlesCount = await ArticleService.GetScrapedArticlesCountAsync();
         unScrapedArticlesCount = await ArticleService.GetUnscrapedArticlesCountAsync();
         categories = await ArticleService.GetUniqueCategories();
+        this._fromDate = DateTime.Now.AddYears(-15);
+        this._toDate = DateTime.Now;
+        if (this.categories.Any())
+            this.selectedCategory = this.categories[0];
     }
 
     public async void OnScrapeClickHandler()
@@ -144,14 +153,18 @@
             }
 
             unScrapedArticlesCount -= 1;
+            unScrapedArticlesCountFiltered -= 1;
             AddLog(article);
         }
         isScraperRunning = false;
         StateHasChanged();
     }
-    private void UpdateUnscrapedCount()
+    private async void UpdateUnscrapedFilteredCount()
     {
         Console.WriteLine($"Category: {selectedCategory}, From: {fromDate}, To: {toDate}");
+        if (this.fromDate.HasValue && this.toDate.HasValue && !string.IsNullOrWhiteSpace(this.selectedCategory))
+            this.unScrapedArticlesCountFiltered = await ArticleService.GetUnscrapedArticlesCountAsync(this.selectedCategory, this.fromDate.Value, this.toDate.Value);
+
     }
 
     public async void OnParseJsonClickHandler()
@@ -173,6 +186,10 @@
     {
         var log = $"{DateTime.Now.ToString("G")} - finished waiting {delayInMilliseconds/1000} seconds to reduce load on external website";
         this.logs.Insert(0, log);
+        while (this.logs.Count > 250)
+        {
+            this.logs.RemoveAt(this.logs.Count - 1);
+        }
         StateHasChanged();
     }
 }

@@ -30,6 +30,11 @@ namespace TextEventVisualizer.Services
             return ArticleRepository.GetUnscrapedArticlesCountAsync();
         }
 
+        public Task<int> GetUnscrapedArticlesCountAsync(string category, DateTime from, DateTime to)
+        {
+            return ArticleRepository.GetUnscrapedArticlesCountAsync(category, from, to);
+        }
+
         public Task<List<Article>> GetScrapedArticlesAsync()
         {
             return ArticleRepository.GetScrapedArticlesAsync();

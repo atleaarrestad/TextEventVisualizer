@@ -14,6 +14,13 @@
     justify-content: space-between;
 }
 
+.container-column {
+    display: flex;
+    flex-direction: column;
+    padding-top: 4px;
+    padding-bottom: 4px;
+}
+
 .container {
     display: flex;
     flex-direction: column;

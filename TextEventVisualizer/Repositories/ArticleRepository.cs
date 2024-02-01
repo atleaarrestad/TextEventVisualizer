@@ -54,6 +54,15 @@ namespace TextEventVisualizer.Repositories
             return await _context.Articles.CountAsync(article => !article.HasBeenScraped);
         }
 
+        public Task<int> GetUnscrapedArticlesCountAsync(string category, DateTime from, DateTime to)
+        {
+            return _context.Articles.CountAsync(article =>
+                !article.HasBeenScraped &&
+                article.Category == category &&
+                article.Date >= from &&
+                article.Date <= to);
+        }
+
         public async Task<int> GetScrapedArticlesCountAsync()
         {
             return await _context.Articles.CountAsync(article => article.HasBeenScraped);
