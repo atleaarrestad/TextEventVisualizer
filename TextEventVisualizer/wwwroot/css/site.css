@@ -1,7 +1,3 @@
-@import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
-
-
-
 /* CSS RESET */
 /* Box sizing rules */
 *,
@@ -33,6 +29,7 @@ ol[role='list'] {
 body {
     min-height: 100vh;
     line-height: 1.5;
+    margin: 0px;
 }
 
 /* Set shorter line heights on headings and interactive elements */

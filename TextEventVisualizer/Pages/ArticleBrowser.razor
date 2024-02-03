@@ -1,0 +1,45 @@
+﻿@page "/articlebrowser"
+@using Services
+@using Models
+@inject IArticleService articleService
+
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Author</th>
+                <th>Date</th>
+                <th>Summary</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var article in articles)
+            {
+                <tr>
+                    <td>@article.Date.ToString("yyyy-MM-dd")</td>
+                    <td>@article.Category</td>
+                    <td>@article.WebUrl</td>
+                    <td>@article.Description</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+
+@code {
+    private List<Article> articles = new();
+
+
+    protected async override void OnInitialized()
+    {
+        articles = await GetDataFromServer();
+    }
+
+    private Task<List<Article>> GetDataFromServer()
+    {
+        return articleService.GetArticlesAsync(true);
+    }
+}
+

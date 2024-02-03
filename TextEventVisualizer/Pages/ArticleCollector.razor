@@ -1,4 +1,5 @@
-﻿@using Data;
+﻿@page "/articlecollector"
+@using Data;
 @using Models;
 @using Services;
 @inject IArticleService ArticleService;
@@ -122,8 +123,8 @@
 
     protected async override void OnInitialized()
     {
-        scrapedArticlesCount = await ArticleService.GetScrapedArticlesCountAsync();
-        unScrapedArticlesCount = await ArticleService.GetUnscrapedArticlesCountAsync();
+        scrapedArticlesCount = await ArticleService.GetArticlesCountAsync(scraped: true);
+        unScrapedArticlesCount = await ArticleService.GetArticlesCountAsync(scraped: false);
         categories = await ArticleService.GetUniqueCategories();
         this._fromDate = DateTime.Now.AddYears(-15);
         this._toDate = DateTime.Now;
@@ -134,7 +135,11 @@
     public async void OnScrapeClickHandler()
     {
         isScraperRunning = true;
-        var unscrapedArticles = await ArticleService.GetUnscrapedArticlesAsync();
+        var unscrapedArticles = await ArticleService.GetArticlesAsync(
+                scraped: false,
+                category: this.selectedCategory,
+                from: this.fromDate.Value,
+                to: this.toDate.Value);
 
         foreach (var article in unscrapedArticles)
         {
@@ -163,7 +168,11 @@
     {
         Console.WriteLine($"Category: {selectedCategory}, From: {fromDate}, To: {toDate}");
         if (this.fromDate.HasValue && this.toDate.HasValue && !string.IsNullOrWhiteSpace(this.selectedCategory))
-            this.unScrapedArticlesCountFiltered = await ArticleService.GetUnscrapedArticlesCountAsync(this.selectedCategory, this.fromDate.Value, this.toDate.Value);
+            this.unScrapedArticlesCountFiltered = await ArticleService.GetArticlesCountAsync(
+                scraped: false,
+                category: this.selectedCategory,
+                from: this.fromDate.Value,
+                to: this.toDate.Value);
 
     }
 

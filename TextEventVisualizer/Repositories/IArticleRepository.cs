@@ -5,11 +5,8 @@ namespace TextEventVisualizer.Repositories
     public interface IArticleRepository
     {
         Task<Article> GetArticleAsync(int id);
-        Task<List<Article>> GetUnscrapedArticlesAsync();
-        Task<int> GetUnscrapedArticlesCountAsync();
-        Task<int> GetUnscrapedArticlesCountAsync(string category, DateTime from, DateTime to);
-        Task<List<Article>> GetScrapedArticlesAsync();
-        Task<int> GetScrapedArticlesCountAsync();
+        Task<int> GetArticlesCountAsync(bool? scraped = null, string? category = null, DateTime? from = null, DateTime? to = null);
+        Task<List<Article>> GetArticlesAsync(bool? scraped = null, string? category = null, DateTime? from = null, DateTime? to = null);
         Task AddArticleBatchAsync(List<Article> articles);
         Task AddArticleAsync(Article article);
         Task UpdateArticleAsync(Article article);

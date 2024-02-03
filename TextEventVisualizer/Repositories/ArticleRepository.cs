@@ -18,15 +18,6 @@ namespace TextEventVisualizer.Repositories
             return await _context.Articles.FindAsync(id);
         }
 
-        public async Task<List<Article>> GetUnscrapedArticlesAsync()
-        {
-            return await _context.Articles.Where(article => !article.HasBeenScraped).ToListAsync();
-        }
-        public async Task<List<Article>> GetScrapedArticlesAsync()
-        {
-            return await _context.Articles.Where(article => article.HasBeenScraped).ToListAsync();
-        }
-
         public async Task AddArticleAsync(Article article)
         {
             _context.Articles.Add(article);
@@ -49,23 +40,58 @@ namespace TextEventVisualizer.Repositories
             }
         }
 
-        public async Task<int> GetUnscrapedArticlesCountAsync()
+        public Task<int> GetArticlesCountAsync(bool? scraped = null, string? category = null, DateTime? from = null, DateTime? to = null)
         {
-            return await _context.Articles.CountAsync(article => !article.HasBeenScraped);
+            var query = _context.Articles.AsQueryable();
+
+            if (scraped.HasValue)
+            {
+                query = query.Where(article => article.HasBeenScraped == scraped.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(category))
+            {
+                query = query.Where(article => article.Category == category);
+            }
+
+            if (from.HasValue)
+            {
+                query = query.Where(article => article.Date >= from.Value);
+            }
+
+            if (to.HasValue)
+            {
+                query = query.Where(article => article.Date <= to.Value);
+            }
+
+            return query.CountAsync();
         }
 
-        public Task<int> GetUnscrapedArticlesCountAsync(string category, DateTime from, DateTime to)
+        public Task<List<Article>> GetArticlesAsync(bool? scraped = null, string? category = null, DateTime? from = null, DateTime? to = null)
         {
-            return _context.Articles.CountAsync(article =>
-                !article.HasBeenScraped &&
-                article.Category == category &&
-                article.Date >= from &&
-                article.Date <= to);
-        }
+            var query = _context.Articles.AsQueryable();
 
-        public async Task<int> GetScrapedArticlesCountAsync()
-        {
-            return await _context.Articles.CountAsync(article => article.HasBeenScraped);
+            if (scraped.HasValue)
+            {
+                query = query.Where(article => article.HasBeenScraped == scraped.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(category))
+            {
+                query = query.Where(article => article.Category == category);
+            }
+
+            if (from.HasValue)
+            {
+                query = query.Where(article => article.Date >= from.Value);
+            }
+
+            if (to.HasValue)
+            {
+                query = query.Where(article => article.Date <= to.Value);
+            }
+
+            return query.ToListAsync();
         }
 
         public Task AddArticleBatchAsync(List<Article> articles)
