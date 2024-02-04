@@ -14,5 +14,6 @@ Follow these steps to set up the TextEventVisualizer environment on your local m
 2. **Download the Dataset:**
    - Download the required dataset from Kaggle: [News Category Dataset](https://www.kaggle.com/datasets/rmisra/news-category-dataset).
    - After downloading, place the `.json` file in the `TextEventVisualizer/Data` folder.
+   - rename the .json file to `news_articles.json`
 
 ---
