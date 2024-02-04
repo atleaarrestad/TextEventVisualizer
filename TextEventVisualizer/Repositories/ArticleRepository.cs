@@ -69,7 +69,7 @@ namespace TextEventVisualizer.Repositories
             return query.CountAsync();
         }
 
-        public Task<List<Article>> GetArticlesAsync(bool? scraped = null, string? category = null, DateTime? from = null, DateTime? to = null)
+        public Task<List<Article>> GetArticlesAsync(bool? scraped = null, string? category = null, DateTime? from = null, DateTime? to = null, int? limit = null)
         {
             var query = _context.Articles.AsQueryable();
 
@@ -93,6 +93,11 @@ namespace TextEventVisualizer.Repositories
             if (to.HasValue)
             {
                 query = query.Where(article => article.Date <= to.Value);
+            }
+
+            if (limit.HasValue && limit.Value > 0)
+            {
+                query = query.Take(limit.Value);
             }
 
             return query.ToListAsync();

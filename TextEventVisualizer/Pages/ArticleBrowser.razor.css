@@ -76,3 +76,54 @@ tbody tr:not(.article-container):hover {
 .active-row {
     background-color: lightblue !important;
 }
+
+.filter-container {
+    margin-bottom: 20px;
+    padding: 10px;
+    background-color: #f2f2f2;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+    .filter-container > div {
+        flex-grow: 1;
+        align-items: center;
+    }
+
+.filter-category select,
+.filter-date input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.filter-button {
+    padding: 10px 15px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    align-self: end;
+}
+
+    .filter-button:hover {
+        background-color: #45a049;
+    }
+
+label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.filter-limit input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}

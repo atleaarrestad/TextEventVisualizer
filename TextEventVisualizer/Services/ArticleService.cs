@@ -21,9 +21,9 @@ namespace TextEventVisualizer.Services
             return ArticleRepository.DeleteArticleAsync(id);
         }
 
-        public Task<List<Article>> GetArticlesAsync(bool? scraped = null, string? category = null, DateTime? from = null, DateTime? to = null)
+        public Task<List<Article>> GetArticlesAsync(bool? scraped = null, string? category = null, DateTime? from = null, DateTime? to = null, int? limit = null)
         {
-            return ArticleRepository.GetArticlesAsync(scraped, category, from, to);
+            return ArticleRepository.GetArticlesAsync(scraped, category, from, to, limit);
         }
         
         public Task<int> GetArticlesCountAsync(bool? scraped = null, string? category = null, DateTime? from = null, DateTime? to = null)
