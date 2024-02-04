@@ -44,6 +44,8 @@ namespace TextEventVisualizer.Repositories
         {
             var query = _context.Articles.AsQueryable();
 
+            query = query.Where(article => !article.UrlDoesntExistAnymore);
+
             if (scraped.HasValue)
             {
                 query = query.Where(article => article.HasBeenScraped == scraped.Value);
@@ -70,6 +72,8 @@ namespace TextEventVisualizer.Repositories
         public Task<List<Article>> GetArticlesAsync(bool? scraped = null, string? category = null, DateTime? from = null, DateTime? to = null)
         {
             var query = _context.Articles.AsQueryable();
+
+            query = query.Where(article => !article.UrlDoesntExistAnymore);
 
             if (scraped.HasValue)
             {

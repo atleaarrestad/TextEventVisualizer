@@ -9,19 +9,21 @@ namespace TextEventVisualizer.Services
     public class JsonService : IJsonService
     {
         private readonly IArticleService articleService;
+        public delegate Task LoggerDelegate(string message);
+
         public JsonService(IArticleService articleService)
         {
             this.articleService = articleService;
         }
 
-        public async Task ExtractArticlesFromJsonFile()
+        public async Task ExtractArticlesFromJsonFile(LoggerDelegate loggerDelegate)
         {
             var stopWatch = new Stopwatch();
             stopWatch.Start();
 
             string jsonFilePath = "Data/news_articles.json";
             List<Article> articlesBuffer = new();
-            int batchSize = 100;
+            int batchSize = 2500;
             using (StreamReader file = File.OpenText(jsonFilePath))
             {
                 string line;
@@ -53,23 +55,23 @@ namespace TextEventVisualizer.Services
                         if (articlesBuffer.Count >= batchSize)
                         {
                             await articleService.AddArticleBatchAsync(articlesBuffer);
+                            loggerDelegate?.Invoke($"added {batchSize} articles");
                             articlesBuffer.Clear();
-                            Console.WriteLine("added 100 articles");
                         }
                     }
                     catch (JsonReaderException ex)
                     {
-                        Console.WriteLine($"JSON Parsing Error: {ex.Message}");
+                        loggerDelegate?.Invoke($"JSON Parsing Error: {ex.Message}");
                     }
                 }
 
                 if (articlesBuffer.Any())
                 {
-                    Console.WriteLine($"added {articlesBuffer.Count} articles");
                     await articleService.AddArticleBatchAsync(articlesBuffer);
+                    loggerDelegate?.Invoke($"added {articlesBuffer.Count} articles");
                 }
                 stopWatch.Stop();
-                Console.WriteLine(stopWatch.Elapsed.ToString());
+                loggerDelegate?.Invoke($"Finished adding skeleton articles, elapsed time: {stopWatch.Elapsed}");
             }
         }
 

@@ -11,6 +11,7 @@
         public string Authors { get; set; }
         public DateTime Date { get; set; }
         public bool HasBeenScraped { get; set; }
+        public bool UrlDoesntExistAnymore { get; set; }
     }
 
 }

@@ -10,7 +10,7 @@
         <div class="container scraped">
             <span class="count">@unScrapedArticlesCount</span>
             <span class="label">Skeleton articles added from dataset</span>
-            <button @onclick="OnParseJsonClickHandler" class="scraper-button" style="margin-right: 8px">Start Add articles from JSON</button>
+            <button @onclick="OnParseJsonClickHandler" class="scraper-button @((isJsonExtractorRunning || isJsonAlreadyParsed) ? "disabled" : "")" disabled="@(isJsonAlreadyParsed || isJsonExtractorRunning)" style="margin-right: 8px">Start Add articles from JSON</button>
         </div>
 
         <div class="container unscraped">
@@ -34,11 +34,8 @@
                 </div>
             </div>
 
-
-
-
             <div class="container-row">
-                <button @onclick="OnScrapeClickHandler" class="scraper-button" style="margin-right: 8px">Start gathering process</button>
+                <button @onclick="OnScrapeClickHandler" class="scraper-button" style="margin-right: 8px">@(isScraperRunning ? "Stop gathering process" : "Start gathering process")</button>
             </div>
         </div>
 
@@ -54,7 +51,7 @@
         <div class="log-header">
             <div class="log-title">Webscraper logs</div>
             <div class="spinner-container">
-                @if (isScraperRunning)
+                @if (isScraperRunning || isJsonExtractorRunning)
                 {
                     <div class="spinner"></div>
                 }
@@ -78,6 +75,8 @@
     private List<string> categories = new();
     private List<string> logs = new();
     private bool isScraperRunning;
+    private bool isJsonExtractorRunning;
+    private bool isJsonAlreadyParsed;
     private string _selectedCategory = string.Empty;
     private DateTime? _fromDate;
     private DateTime? _toDate;
@@ -121,6 +120,8 @@
         }
     }
 
+
+
     protected async override void OnInitialized()
     {
         scrapedArticlesCount = await ArticleService.GetArticlesCountAsync(scraped: true);
@@ -129,12 +130,19 @@
         this._fromDate = DateTime.Now.AddYears(-15);
         this._toDate = DateTime.Now;
         if (this.categories.Any())
+        {
             this.selectedCategory = this.categories[0];
+            isJsonAlreadyParsed = true;
+        }
     }
 
     public async void OnScrapeClickHandler()
     {
-        isScraperRunning = true;
+        isScraperRunning = !isScraperRunning;
+
+        if (!isScraperRunning)
+            return;
+
         var unscrapedArticles = await ArticleService.GetArticlesAsync(
                 scraped: false,
                 category: this.selectedCategory,
@@ -143,10 +151,22 @@
 
         foreach (var article in unscrapedArticles)
         {
-            await Task.Delay(4000);
-            AddLog(4000);
+            if (!isScraperRunning)
+                return;
 
-            var result = await WebScraper.Scrape(article.WebUrl);
+            string result;
+            try
+            {
+                result = await WebScraper.Scrape(article.WebUrl);
+            }
+            catch (Exception ex)
+            {
+                await AddLog($"Problems when scraping article: {ex.Message}");
+                article.UrlDoesntExistAnymore = true;
+                article.HasBeenScraped = true;
+                await ArticleService.UpdateArticleAsync(article);
+                continue;
+            }
             if (result.Length > 0)
             {
                 article.Content = result;
@@ -159,14 +179,21 @@
 
             unScrapedArticlesCount -= 1;
             unScrapedArticlesCountFiltered -= 1;
-            AddLog(article);
+
+            var logMessage = article.Content.Length > 0
+                ? $"Successfully scraped {article.Content.Length} characters - updated database"
+                : "Failure, content is empty";
+            await AddLog(logMessage);
+
+            await Task.Delay(4000);
+            await AddLog("waiting 4 seconds to reduce load on external website");
+
         }
         isScraperRunning = false;
         StateHasChanged();
     }
     private async void UpdateUnscrapedFilteredCount()
     {
-        Console.WriteLine($"Category: {selectedCategory}, From: {fromDate}, To: {toDate}");
         if (this.fromDate.HasValue && this.toDate.HasValue && !string.IsNullOrWhiteSpace(this.selectedCategory))
             this.unScrapedArticlesCountFiltered = await ArticleService.GetArticlesCountAsync(
                 scraped: false,
@@ -178,27 +205,27 @@
 
     public async void OnParseJsonClickHandler()
     {
-        await JsonService.ExtractArticlesFromJsonFile();
-    }
-
-    private void AddLog(Article article){
-        var logInfo = article.Content.Length > 0
-            ? $"Successfully scraped {article.Content.Length} characters - updated database"
-            : "Failure, content is empty";
-
-        var log = $"{DateTime.Now.ToString("G")} - {logInfo}";
-        this.logs.Insert(0, log);
+        isJsonExtractorRunning = true;
+        await Task.Run(async () => await JsonService.ExtractArticlesFromJsonFile(AddLog));
+        isJsonExtractorRunning = false;
+        isJsonAlreadyParsed = true;
+        OnInitialized();
         StateHasChanged();
     }
 
-    private void AddLog(int delayInMilliseconds)
+    public async Task AddLog(string message)
     {
-        var log = $"{DateTime.Now.ToString("G")} - finished waiting {delayInMilliseconds/1000} seconds to reduce load on external website";
-        this.logs.Insert(0, log);
-        while (this.logs.Count > 250)
+        var log = $"{DateTime.Now.ToString("G")} - {message}";
+
+        await InvokeAsync(() =>
         {
-            this.logs.RemoveAt(this.logs.Count - 1);
-        }
-        StateHasChanged();
+            this.logs.Insert(0, log);
+            while (this.logs.Count > 250)
+            {
+                this.logs.RemoveAt(this.logs.Count - 1);
+            }
+            StateHasChanged();
+        });
     }
+
 }

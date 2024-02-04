@@ -7,9 +7,9 @@
     <table>
         <thead>
             <tr>
-                <th>Title</th>
-                <th>Author</th>
                 <th>Date</th>
+                <th>Category</th>
+                <th>Url</th>
                 <th>Summary</th>
             </tr>
         </thead>
@@ -19,7 +19,7 @@
                 <tr>
                     <td>@article.Date.ToString("yyyy-MM-dd")</td>
                     <td>@article.Category</td>
-                    <td>@article.WebUrl</td>
+                    <td><a href="@article.WebUrl" target="_blank">Web URL</a></td>
                     <td>@article.Description</td>
                 </tr>
             }
