@@ -7,21 +7,38 @@
     <table>
         <thead>
             <tr>
-                <th>Date</th>
-                <th>Category</th>
-                <th>Url</th>
-                <th>Summary</th>
+                <th class="th-date">Date</th>
+                <th class="th-category">Category</th>
+                <th class="th-url">Url</th>
+                <th class="th-summary">Summary</th>
             </tr>
         </thead>
         <tbody>
             @foreach (var article in articles)
             {
-                <tr>
+                <tr @onclick="() => OnRowClickedHandler(article.Id)" class="row-container @(activeArticle == article.Id ? "active-row" : "")">
                     <td>@article.Date.ToString("yyyy-MM-dd")</td>
                     <td>@article.Category</td>
-                    <td><a href="@article.WebUrl" target="_blank">Web URL</a></td>
-                    <td>@article.Description</td>
+                    <td><a href="@article.WebUrl" target="_blank" @onclick:stopPropagation>Web URL</a></td>
+                    <td>@(article.Description.Length <= 100 ? article.Description : article.Description.Substring(0, 100) + "...")</td>
                 </tr>
+
+                @if (activeArticle == article.Id)
+                {
+                <tr class="article-container">
+                    <td colspan="4">
+                        <div class="active-article-content">
+                            <div class="article-content-header">Article Description</div>
+                            <div class="article-content-body">@article.Description</div>
+                        </div>
+                        <div class="active-article-content">
+                            <div class="article-content-header">Article Content</div>
+                            <div class="article-content-body">@article.Content</div>
+                        </div>
+                    </td>
+                </tr>
+                }
+                
             }
         </tbody>
     </table>
@@ -30,7 +47,7 @@
 
 @code {
     private List<Article> articles = new();
-
+    private int? activeArticle = 16;
 
     protected async override void OnInitialized()
     {
@@ -40,6 +57,14 @@
     private Task<List<Article>> GetDataFromServer()
     {
         return articleService.GetArticlesAsync(true);
+    }
+
+    private void OnRowClickedHandler(int articleId)
+    {
+        if (activeArticle == articleId)
+            activeArticle = null;
+        else
+            activeArticle = articleId;
     }
 }
 

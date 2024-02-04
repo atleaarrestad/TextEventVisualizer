@@ -6,13 +6,13 @@
 table {
     border-collapse: collapse;
     width: 100%;
-    table-layout: fixed;
 }
 
 th, td {
     text-align: left;
     padding: 8px;
     border-bottom: 1px solid #ddd;
+    transition: background-color 0.3s ease;
 }
 
 th {
@@ -20,10 +20,60 @@ th {
     color: black;
 }
 
-tr:hover {
-    background-color: #f5f5f5; 
+tr:nth-child(2n+1) {
+    background-color: #eeeeee;
 }
 
-td {
-    word-wrap: break-word; 
+tbody tr:not(.article-container):hover {
+    background-color: #e8f4fc;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+    transition: background-color 0.1s ease, box-shadow 0.1s ease, transform 0.1s ease;
+    cursor: pointer;
+}
+
+.th-date {
+    width: 100px;
+}
+
+.th-category {
+    width: 170px;
+}
+
+.th-url {
+    width: 100px;
+}
+
+.th-summary {
+    width: auto;
+}
+
+.article-container{
+
+}
+
+
+.active-article-content {
+    margin-top: 10px;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.article-content-header {
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.article-content-body {
+    white-space: pre-line;
+}
+
+.active-row {
+    background-color: #aaa !important;
 }
