@@ -52,7 +52,6 @@ tbody tr:not(.article-container):hover {
 
 }
 
-
 .active-article-content {
     margin-top: 10px;
     padding: 15px;
@@ -75,5 +74,5 @@ tbody tr:not(.article-container):hover {
 }
 
 .active-row {
-    background-color: #aaa !important;
+    background-color: lightblue !important;
 }
