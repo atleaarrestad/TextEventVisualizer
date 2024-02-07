@@ -45,9 +45,6 @@ conn.close()
 
 
 
-
-
-# Corpus with example sentences
 corpus = ' '.join(headlines)
 corpus = corpus.replace('\u2015', '-')
 
