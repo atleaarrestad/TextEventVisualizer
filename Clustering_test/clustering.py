@@ -36,7 +36,7 @@ rows = cursor.fetchall()
 
 # Process the fetched data
 headlines = [row[0] for row in rows]
-print("Number of headlines fetched:", len(headlines))
+print("Number of description fetched:", len(headlines))
 
 # Close the database connection
 conn.close()
@@ -69,8 +69,9 @@ clustered_sentences = {i: [] for i in range(num_clusters)}
 for sentence_id, cluster_id in enumerate(cluster_assignment):
     clustered_sentences[cluster_id].append(sentences[sentence_id])
 
+print("Starting to write to file")
 
-with open("C:/Users/Stig/Documents/GitHub/TextEventVisualizer/TextEventVisualizer/Clustering_test/output.txt", "w", encoding = "utf-8") as output:
+with open("C:/Users/Stig/Documents/GitHub/TextEventVisualizer/Clustering_test/output.txt", "w", encoding = "utf-8") as output:
     output.write("")
     for i, cluster in clustered_sentences.items():
         output.write("Cluster " + str(i + 1) + "\n")

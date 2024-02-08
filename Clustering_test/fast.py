@@ -1,7 +1,7 @@
 import sqlite3
-from sentence_transformers import SentenceTransformer
-from sklearn.cluster import KMeans
+from sentence_transformers import SentenceTransformer, util
 import spacy
+import time
 
 db_path = "C:/Users/Stig/Documents/GitHub/TextEventVisualizer/TextEventVisualizer/database.db"
 
@@ -39,4 +39,35 @@ doc = nlp(corpus)
 sentences = [sent.text for sent in doc.sents]   
 
 
-corpus_embeddings = embedder.encode(sentences)
+corpus_sentences = list(sentences)
+print("Encoding the corpus.")
+corpus_embeddings = embedder.encode(corpus_sentences, batch_size=64, show_progress_bar=True, convert_to_tensor=True)
+
+print("Start clustering")
+start_time = time.time()
+
+# Two parameters to tune:
+# min_cluster_size: Only consider cluster that have at least 25 elements
+# threshold: Consider sentence pairs with a cosine-similarity larger than threshold as similar
+clusters = util.community_detection(corpus_embeddings, min_community_size=1, threshold=0.45)
+
+print("Clustering done after {:.2f} sec".format(time.time() - start_time))
+
+print("Starting to write to file")
+
+with open("C:/Users/Stig/Documents/GitHub/TextEventVisualizer/Clustering_test/fast.txt", "w", encoding = "utf-8") as output:
+    output.write("")
+    for cluster_id, cluster in enumerate(clusters):
+        output.write(f"Cluster {cluster_id + 1}:\n")
+        for sentence_index in cluster:
+            output.write(f"{corpus_sentences[sentence_index]}\n")
+        output.write("\n")
+
+    # for i, cluste in clustered_sentences.items():
+    #     output.write("Cluster " + str(i + 1) + "\n")
+    #     for sentence in cluster:
+    #         output.write(sentence + "\n")
+    #     output.write("\n")    
+
+print("Clustering done. Output written to fast.txt")
+
