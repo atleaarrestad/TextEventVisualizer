@@ -18,8 +18,7 @@ cursor = conn.cursor()
 
 
 cursor.execute('SELECT Description FROM Articles WHERE Category = "WORLD NEWS" AND HasBeenScraped = "1"')
-# Execute SQL query to fetch headlines where category is some_value
-# cursor.execute('SELECT Headline FROM Articles WHERE Category = "WORLD NEWS"')
+# Execute SQL query to fetch data for clustering
 rows = cursor.fetchall()
 
 # Process the fetched data
@@ -29,7 +28,7 @@ print("Number of description fetched:", len(headlines))
 # Close the database connection
 conn.close()
 
-# Now you can use the fetched headlines for further processing
+# further processing
 
 
 corpus = ' '.join(headlines)
@@ -47,8 +46,7 @@ corpus_embeddings = corpus_embeddings / np.linalg.norm(corpus_embeddings, axis=1
 
 # Perform agglomerative clustering
 clustering_model = AgglomerativeClustering(
-    n_clusters=None, distance_threshold=1.5
-)  # , affinity='cosine', linkage='average', distance_threshold=0.4)
+    n_clusters=None, distance_threshold=1.5) 
 clustering_model.fit(corpus_embeddings)
 cluster_assignment = clustering_model.labels_
 

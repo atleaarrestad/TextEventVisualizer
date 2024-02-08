@@ -30,8 +30,7 @@ cursor = conn.cursor()
 
 
 cursor.execute('SELECT Description FROM Articles WHERE Category = "WORLD NEWS" AND HasBeenScraped = "1"')
-# Execute SQL query to fetch headlines where category is some_value
-# cursor.execute('SELECT Headline FROM Articles WHERE Category = "WORLD NEWS"')
+# Execute SQL query to fetch data for clustering
 rows = cursor.fetchall()
 
 # Process the fetched data
@@ -41,9 +40,9 @@ print("Number of description fetched:", len(headlines))
 # Close the database connection
 conn.close()
 
-# Now you can use the fetched headlines for further processing
 
 
+# further processing
 
 corpus = ' '.join(headlines)
 corpus = corpus.replace('\u2015', '-')
@@ -81,11 +80,5 @@ with open("C:/Users/Stig/Documents/GitHub/TextEventVisualizer/Clustering_test/ou
 
 print("Clustering done. Output written to output.txt")
 
-# # for i, cluster in enumerate(clustered_sentences):
-# for i, cluster in clustered_sentences.items():
-#     print("Cluster ", i + 1)
-#     for sentence in cluster:
-#         # print(sentence)
-#         print(sentence.encode('utf-8', 'replace').decode('utf-8', 'replace'))
-#     print("")
+
 
