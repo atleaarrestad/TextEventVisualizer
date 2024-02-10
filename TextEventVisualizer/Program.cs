@@ -22,6 +22,7 @@ builder.Services.AddScoped<IArticleRepository, ArticleRepository>();
 //services
 builder.Services.AddScoped<IArticleService, ArticleService>();
 builder.Services.AddScoped<IJsonService, JsonService>();
+builder.Services.AddScoped<IEmbeddingService, EmbeddingService>();
 
 var app = builder.Build();
 

@@ -1,0 +1,28 @@
+﻿@page "/weaviate"
+@inject Services.IEmbeddingService EmbeddingService
+
+<h3>Weaviate</h3>
+<button @onclick="OnAddSchemaButtonPressed">Create schema</button>
+<input @bind-value="searchString" type="text" />
+<button @onclick="OnAddVectorButtonPressed">Add test vector</button>
+<button @onclick="OnQueryVectorButtonPressed">Search</button>
+
+
+@code {
+    public string searchString = "";
+    public async void OnAddSchemaButtonPressed()
+    {
+        await EmbeddingService.SetupSchemaAsync();
+        Console.WriteLine("ran adding schema");
+    }
+    public async void OnAddVectorButtonPressed()
+    {
+        await EmbeddingService.InsertDataAsync("123", "I am a proud knight that wears solid armor. i am super happy and i am always smiling hehe.");
+        Console.WriteLine("ran adding vector");
+    }
+    public async void OnQueryVectorButtonPressed()
+    {
+        await EmbeddingService.QueryDataAsync(searchString);
+        Console.WriteLine("ran vector search");
+    }
+}
