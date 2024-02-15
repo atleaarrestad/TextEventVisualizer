@@ -1,5 +1,9 @@
 ﻿namespace TextEventVisualizer.Models.Response
 {
+    public class EmbeddingQueryResponse
+    {
+        public Data data { get; set; }
+    }
 
     public class Additional
     {
@@ -7,11 +11,12 @@
         public double distance { get; set; }
     }
 
-    public class Article
+    public class Embedding
     {
         public Additional _additional { get; set; }
+        public EmbeddingCategory category { get; set; }
         public string originalId { get; set; }
-        public string textContent { get; set; }
+        public string content { get; set; }
     }
 
     public class Data
@@ -21,12 +26,6 @@
 
     public class Get
     {
-        public List<Article> Article { get; set; }
+        public List<Embedding> Embedding { get; set; }
     }
-
-    public class GraphQLResponse
-    {
-        public Data data { get; set; }
-    }
-
 }

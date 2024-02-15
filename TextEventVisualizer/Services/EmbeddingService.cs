@@ -4,6 +4,8 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using TextEventVisualizer.Models;
+using TextEventVisualizer.Models.Request;
 using TextEventVisualizer.Models.Response;
 
 
@@ -24,27 +26,33 @@ namespace TextEventVisualizer.Services
         {
             var schema = new
             {
-                @class = "Article",
-                description = "A class to store articles with ID and content",
-                properties = new Object[]
+                @class = "Embedding",
+                description = "A generic class to store various types of embeddings with categorization, original ID, and content",
+                properties = new object[]
                 {
-                new
-                {
-                    name = "originalId",
-                    dataType = new[] { "string" },
-                    description = "The original ID of the article"
-                },
-                new
-                {
-                    name = "textContent",
-                    dataType = new[] { "text" },
-                    description = "The content of the article",
-                    moduleConfig = new
+                    new
                     {
-                        text2vec_transformers = new { isVector = true }
+                        name = "category",
+                        dataType = new[] { "int" },
+                        description = "The numeric category of the embedding (from EmbeddingCategory enum)"
+                    },
+                    new
+                    {
+                        name = "originalId",
+                        dataType = new[] { "string" },
+                        description = "The original ID of the content"
+                    },
+                    new
+                    {
+                        name = "content",
+                        dataType = new[] { "text" },
+                        description = "The content to be stored and vectorized",
+                        moduleConfig = new
+                        {
+                            text2vec_transformers = new { isVector = true }
+                        }
                     }
                 }
-            }
             };
 
             var jsonRequest = JsonSerializer.Serialize(schema, new JsonSerializerOptions { WriteIndented = true });
@@ -64,15 +72,16 @@ namespace TextEventVisualizer.Services
             }
         }
 
-        public async Task InsertDataAsync(string originalId, string textContent)
+        public async Task InsertDataAsync(string text, string originalId, EmbeddingCategory category)
         {
             var data = new
             {
-                @class = "Article",
+                @class = "Embedding",
                 properties = new
                 {
+                    category = (int)category,
                     originalId,
-                    textContent
+                    content = text
                 }
             };
 
@@ -84,25 +93,40 @@ namespace TextEventVisualizer.Services
             Console.WriteLine(await response.Content.ReadAsStringAsync());
         }
 
-        public async Task QueryDataAsync(string prompt)
+        public async Task<EmbeddingQueryResponse> QueryDataAsync(EmbeddingQueryRequest request)
         {
+
+            var promptConcepts = string.Join(", ", request.Prompts.Select(p => $"\\\" {p} \\\""));
+            var positiveConcepts = string.Join(", ", request.PositiveBias.Concepts.Select(p => $"\\\"{p}\\\""));
+            var negativeConcepts = string.Join(", ", request.NegativeBias.Concepts.Select(p => $"\\\"{p}\\\""));
+
             string graphqlQuery = $@"
             {{
                 ""query"": ""{{
                     Get {{
-                        Article(nearText: {{
-                            concepts: [\""{prompt}\""],
-                            moveTo: {{
-                                concepts: [\""positive\""],
-                                force: 0.85
+                        Embedding(
+                            limit: {request.Limit},
+                            nearText: {{
+                                concepts: [{promptConcepts}],
+                                distance: {request.Distance},
+                                moveTo: {{
+                                    concepts: [{positiveConcepts}],
+                                    force: {request.PositiveBias.Force}
+                                }},
+                                moveAwayFrom: {{
+                                    concepts: [{negativeConcepts}],
+                                    force: {request.NegativeBias.Force}
+                                }}
                             }},
-                            moveAwayFrom: {{
-                                concepts: [\""negative\""],
-                                force: 0.45
+                            where: {{
+                                path: [\""category\""],
+                                operator: Equal,
+                                valueNumber: 0
                             }}
-                        }}) {{
+                        ) {{
+                            category
                             originalId
-                            textContent
+                            content
                             _additional {{
                                 certainty
                                 distance
@@ -110,10 +134,12 @@ namespace TextEventVisualizer.Services
                         }}
                     }}
                 }}""
-            }}".Replace("\r", "").Replace("\n", " ").Replace("    ", "");
+            }}"
+            .Replace("\r", "").Replace("\n", " ").Replace("    ", "");
 
+            Console.WriteLine(graphqlQuery);
             var content = new StringContent(graphqlQuery, Encoding.UTF8, "application/json");
-
+            var embeddingQueryResult = new EmbeddingQueryResponse();
             try
             {
                 var response = await Client.PostAsync($"{weaviateEndpoint}/graphql", content);
@@ -121,22 +147,50 @@ namespace TextEventVisualizer.Services
                 {
                     var error = await response.Content.ReadAsStringAsync();
                     Console.WriteLine($"GraphQL query failed. Status: {response.StatusCode}. Response body: {error}");
-                    return;
+                    return embeddingQueryResult;
                 }
 
                 var responseBody = await response.Content.ReadAsStringAsync();
-                var queryResult = JsonSerializer.Deserialize<GraphQLResponse>(responseBody);
+                embeddingQueryResult = JsonSerializer.Deserialize<EmbeddingQueryResponse>(responseBody);
 
-                Console.WriteLine("Query successful. Response:");
             }
             catch (Exception e)
             {
                 Console.WriteLine($"An error occurred: {e.Message}");
             }
+
+            return embeddingQueryResult ?? new();
         }
 
+        public async Task<string> testHuggingFace(string input)
+        {
+            string apiKey = "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";
+            string apiUrl = "https://api-inference.huggingface.co/models/facebook/bart-large-cnn";
 
+            Client.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
 
+            var requestData = new
+            {
+                inputs = input,
+            };
 
+            string jsonString = JsonSerializer.Serialize(requestData);
+            var content = new StringContent(jsonString, Encoding.UTF8, "application/json");
+
+            try
+            {
+                HttpResponseMessage response = await Client.PostAsync(apiUrl, content);
+                response.EnsureSuccessStatusCode();
+                string responseBody = await response.Content.ReadAsStringAsync();
+                return responseBody;
+            }
+            catch (HttpRequestException e)
+            {
+                Console.WriteLine("\nException Caught!");
+                Console.WriteLine("Message :{0} ", e.Message);
+            }
+
+            return "";
+        }
     }
 }
