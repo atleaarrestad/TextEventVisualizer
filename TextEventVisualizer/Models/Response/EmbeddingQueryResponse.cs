@@ -2,7 +2,7 @@
 {
     public class EmbeddingQueryResponse
     {
-        public Data data { get; set; }
+        public Data? data { get; set; }
     }
 
     public class Additional
@@ -15,7 +15,7 @@
     {
         public Additional _additional { get; set; }
         public EmbeddingCategory category { get; set; }
-        public string originalId { get; set; }
+        public int originalId { get; set; }
         public string content { get; set; }
     }
 

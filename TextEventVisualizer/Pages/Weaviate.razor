@@ -1,108 +1,114 @@
 ﻿@using Models.Response
 @using Models.Request
+@using Models
 @using Extentions
 @page "/weaviate"
 @inject Services.IEmbeddingService EmbeddingService
 @inject Services.IArticleService ArticleService
+@inject Services.IHuggingFaceService HuggingFaceService
 
-<h1>Experimental - Weaviate</h1>
-<br />
-<div>
-    <button @onclick="OnAddSchemaButtonPressed">Create schema for vector database</button>
-</div>
-<br />
-
-<div>
-    <button @onclick="OnAddAllScrapedArticlesButtonPressed">Vectorise and add all articles to database</button>
-</div>
-<br />
-
-<div>
-    <button @onclick="OnTestArticleSummary">Test summary transformer API</button>
-</div>
-<br />
-<div>
-    <input @bind-value="contentString" type="text" />
-    <button @onclick="OnAddVectorButtonPressed">Add test vector to database</button>
-</div>
-<br />
-<br />
-<br />
-
-
-
-<h4>@this.huggingfaceSummaryResponse</h4>
-<br />
-<span>@this.originalArticleContent</span>
-
-
-<div class="search-container">
-<h3>Advanced Search</h3>
-    <br />
-    <div class="search-section">
-        <div class="field-group">
-            <label for="searchString">Search String:</label>
-            <input id="searchString" @bind-value="searchString" type="text" class="search-input" />
-            <label for="distance" class="weight-label">Distance:</label>
-            <input id="distance" @bind-value="distance" type="number" step="0.05" class="weight-input" />
-        </div>
-    </div>
-
-    <div class="bias-section">
-        <div class="field-group">
-            <label for="positiveBias">Positive Bias:</label>
-            <input id="positiveBias" @bind-value="positiveBias" type="text" class="bias-input" />
-            <label for="positiveWeight" class="weight-label">Weight:</label>
-            <input id="positiveWeight" @bind-value="positiveWeight" type="number" step="0.05" min="0" max="1" class="weight-input" />
-
-        </div>
-    </div>
-
-    <div class="bias-section">
-        <div class="field-group">
-            <label for="negativeBias">Negative Bias:</label>
-            <input id="negativeBias" @bind-value="negativeBias" type="text" class="bias-input" />
-            <label for="negativeWeight" class="weight-label">Weight:</label>
-            <input id="negativeWeight" @bind-value="negativeWeight" type="number" step="0.05" class="weight-input" />
-        </div>
-    </div>
-
-    <button @onclick="OnQueryVectorButtonPressed">Search</button>
-</div>
-
-
-@if (response != null)
+@if (weaviatePing)
 {
-    <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th class="distance-column">Distance</th>
-                    <th class="certainty-column">Certainty</th>
-                    <th class="content-column">Content</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in response.data.Get.Embedding)
-                {
-                    <tr>
-                        <td>@item._additional.distance.ToString("F3")</td>
-                        <td>@item._additional.certainty.ToString("F3")</td>
-                        @if (item.content.Length >= 500){
-                            <td>@item.content.Substring(0, 500)...... (@(item.content.Length - 500) more characters)</td>
-                        }
-                        else
-                        {
-                            <td>@item.content</td>
-                        }
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div>
+    <span class="title">Clustering </span>
+    <span class="ping-circle"></span>
+    <span class="ping-success">Weaviate connected</span>
+}
+else
+{
+    <div class="ping-failure">Not able to ping weaviate at address @EmbeddingService.GetAPIEndpoint()</div>
+    <div class="ping-failure">Make sure the weaviate docker container is running</div>
 }
 
+@if (weaviatePing){
+    <br />
+    <div>
+        <button @onclick="OnAddSchemaButtonPressed">Create schema for vector database</button>
+    </div>
+    <br />
 
+    <div>
+        <button @onclick="OnAddAllScrapedArticlesButtonPressed">Vectorise and add all articles to database</button>
+    </div>
+    <div>
+        <button @onclick="OnSummarizeAllArticlesButtonPressed">Summarize all articles and update the database</button>
+    </div>
+    <div>
+        <button @onclick="testduplicate">testduplicate</button>
+    </div>
+    <br />
+    <br />
+    <br />
+    <br />
+
+    <div class="search-container">
+    <h3>Advanced Search</h3>
+        <br />
+        <div class="search-section">
+            <div class="field-group">
+                <label for="searchString">Search String:</label>
+                <input id="searchString" @bind-value="searchString" type="text" class="search-input" />
+                <label for="distance" class="weight-label">Distance:</label>
+                <input id="distance" @bind-value="distance" type="number" step="0.05" class="weight-input" />
+            </div>
+        </div>
+
+        <div class="bias-section">
+            <div class="field-group">
+                <label for="positiveBias">Positive Bias:</label>
+                <input id="positiveBias" @bind-value="positiveBias" type="text" class="bias-input" />
+                <label for="positiveWeight" class="weight-label">Weight:</label>
+                <input id="positiveWeight" @bind-value="positiveWeight" type="number" step="0.05" min="0" max="1" class="weight-input" />
+
+            </div>
+        </div>
+
+        <div class="bias-section">
+            <div class="field-group">
+                <label for="negativeBias">Negative Bias:</label>
+                <input id="negativeBias" @bind-value="negativeBias" type="text" class="bias-input" />
+                <label for="negativeWeight" class="weight-label">Weight:</label>
+                <input id="negativeWeight" @bind-value="negativeWeight" type="number" step="0.05" class="weight-input" />
+            </div>
+        </div>
+
+        <button @onclick="OnQueryVectorButtonPressed">Search</button>
+    </div>
+
+
+    @if (response != null && response.data != null)
+    {
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th class="distance-column">Id</th>
+                        <th class="distance-column">Distance</th>
+                        <th class="certainty-column">Certainty</th>
+                        <th class="content-column">Content</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in response.data.Get.Embedding)
+                    {
+                        <tr>
+                            <td>@item.originalId</td>
+                            <td>@item._additional.distance.ToString("F3")</td>
+                            <td>@item._additional.certainty.ToString("F3")</td>
+                            @if (item.content.Length >= 500){
+                                <td>@item.content.Substring(0, 500)...... (@(item.content.Length - 500) more characters)</td>
+                            }
+                            else
+                            {
+                                <td>@item.content</td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+}
 @code {
 
     private string positiveBias = "australia";
@@ -114,9 +120,15 @@
     public string searchString = "wildfire";
     public string contentString = "";
 
-    public string huggingfaceSummaryResponse = "";
-    public string originalArticleContent = "";
+    public bool weaviatePing = false;
     public EmbeddingQueryResponse response;
+
+    protected async override void OnInitialized()
+    {
+        weaviatePing = await EmbeddingService.Ping();
+        StateHasChanged();
+    }
+
 
     public async void OnAddSchemaButtonPressed()
     {
@@ -129,30 +141,23 @@
         var articles = await this.ArticleService.GetArticlesAsync(scraped: true);
         foreach (var article in articles)
         {
-            await EmbeddingService.InsertDataAsync(article.Content, article.Id.ToString(), Models.EmbeddingCategory.Article);
-        }
-    }
-    public async void OnTestArticleSummary()
-    {
+            if (!string.IsNullOrWhiteSpace(article.Content))
+            {
+                var exist = await EmbeddingService.ArticleExistsAsync(article.Id, EmbeddingCategory.Article);
+                if (!exist)
+                    await EmbeddingService.InsertDataAsync(article.Content, article.Id, EmbeddingCategory.Article);
+            }
 
-        var articles = await this.ArticleService.GetArticlesAsync(scraped: true, limit: 1, category: "WORLD NEWS");
-        foreach (var article in articles)
-        {
-            article.Content.RemoveInvalidCharacters();
-            var test = await EmbeddingService.testHuggingFace(article.Content);
-            this.huggingfaceSummaryResponse = test;
-            this.originalArticleContent = article.Content;
-            StateHasChanged();
-            return;
-            //await EmbeddingService.InsertDataAsync(article.Content, article.Id.ToString(), Models.EmbeddingCategory.Article);
+            if (!string.IsNullOrWhiteSpace(article.Summary))
+            {
+                var exist = await EmbeddingService.ArticleExistsAsync(article.Id, EmbeddingCategory.Summary);
+                if (!exist)
+                    await EmbeddingService.InsertDataAsync(article.Summary!, article.Id, Models.EmbeddingCategory.Summary);
+            }
         }
     }
 
-    public async void OnAddVectorButtonPressed()
-    {
-        await EmbeddingService.InsertDataAsync(contentString, "123", Models.EmbeddingCategory.Article);
-        Console.WriteLine("ran adding vector");
-    }
+
     public async void OnQueryVectorButtonPressed()
     {
         var searchConcepts = searchString.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).ToList();
@@ -166,9 +171,66 @@
         request.PositiveBias.Force = positiveWeight;
         request.NegativeBias.Concepts = negativeConsepts;
         request.NegativeBias.Force = negativeWeight;
+        request.Category = Models.EmbeddingCategory.Article;
+        request.Limit = 20;
 
         response = await EmbeddingService.QueryDataAsync(request);
         StateHasChanged();
         Console.WriteLine("ran vector search");
+    }
+
+    public async void OnSummarizeAllArticlesButtonPressed()
+    {
+        var articles = await ArticleService.GetArticlesAsync(scraped: true);
+        var index = 1;
+        var success = "";
+        foreach (var article in articles)
+        {
+            success = "Summary was a failure";
+            if (!string.IsNullOrEmpty(article.Summary) || string.IsNullOrEmpty(article.Content))
+            {
+                index++;
+                continue;
+            }
+
+
+            await Task.Delay(500);
+
+            try
+            {
+                var cleanContent = article.Content.RemoveInvalidCharacters();
+                var summary = await HuggingFaceService.SummarizeText(cleanContent);
+                if (!string.IsNullOrEmpty(summary))
+                {
+                    article.Summary = summary;
+                    await ArticleService.UpdateArticleAsync(article);
+                    success = "Summary was a success";
+                }
+
+            }
+            catch (HttpRequestException e)
+            {
+                
+                if (e.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
+                {
+                    Console.WriteLine("too many requests, Huggingface is blocking the call. aborting...");
+                    return;
+                }
+                if (e.StatusCode == System.Net.HttpStatusCode.BadRequest)
+                {
+                    Console.WriteLine("Something is wrong with the content string. aborting...");
+                }
+                
+            }
+
+            Console.WriteLine($"finished {index} of {articles.Count} articles. {success}");
+            index++;
+
+        }
+    }
+    public async void testduplicate()
+    {
+        var result = await EmbeddingService.ArticleExistsAsync(3499, Models.EmbeddingCategory.Article);
+        Console.WriteLine(result);
     }
 }

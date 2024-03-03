@@ -85,3 +85,26 @@ button {
         background-color: #0056b3;
     }
 
+
+.ping-success {
+    color: forestgreen;
+}
+
+.ping-failure {
+    color: red;
+}
+
+.ping-circle {
+    height: 10px;
+    width: 10px;
+    background-color: #4CAF50; /* Green color */
+    border-radius: 50%; /* Makes the div circular */
+    display: inline-block;
+    margin-right: 5px; /* Adds some space between the circle and the text */
+}
+.title{
+    font-size: 26px;
+    font-weight: 500;
+    padding-right: 8px;
+
+}

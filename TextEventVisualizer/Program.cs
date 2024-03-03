@@ -20,6 +20,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddScoped<IArticleRepository, ArticleRepository>();
 
 //services
+builder.Services.AddHttpClient();
+builder.Services.AddTransient<IHuggingFaceService, HuggingFaceService>();
 builder.Services.AddScoped<IArticleService, ArticleService>();
 builder.Services.AddScoped<IJsonService, JsonService>();
 builder.Services.AddScoped<IEmbeddingService, EmbeddingService>();

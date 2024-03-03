@@ -7,13 +7,15 @@
         public int Limit { get; set; }
         public Bias PositiveBias { get; set; }
         public Bias NegativeBias { get; set; }
+        public EmbeddingCategory Category { get; set; }
 
         public EmbeddingQueryRequest()
         {
             Prompts = new();
             PositiveBias = new();
             NegativeBias = new();
-            Limit = 10;
+            Limit = 20;
+            Category = EmbeddingCategory.Article;
         }
     }
 }

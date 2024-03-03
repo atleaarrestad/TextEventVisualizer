@@ -1,9 +1,7 @@
-﻿using Microsoft.Extensions.Options;
+﻿using System.Net.Http;
 using System;
-using System.Net.Http;
 using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 using TextEventVisualizer.Models;
 using TextEventVisualizer.Models.Request;
 using TextEventVisualizer.Models.Response;
@@ -13,12 +11,12 @@ namespace TextEventVisualizer.Services
 {
     public class EmbeddingService : IEmbeddingService
     {
-        private readonly HttpClient Client;
+        private readonly HttpClient client;
         private readonly IArticleService ArticleService;
         private readonly string weaviateEndpoint = "http://localhost:8080/v1";
-        public EmbeddingService(IArticleService articleService)
+        public EmbeddingService(IHttpClientFactory httpClientFactory, IArticleService articleService)
         {
-            Client = new HttpClient();
+            client = httpClientFactory.CreateClient();
             ArticleService = articleService;
         }
 
@@ -39,7 +37,7 @@ namespace TextEventVisualizer.Services
                     new
                     {
                         name = "originalId",
-                        dataType = new[] { "string" },
+                        dataType = new[] { "int" },
                         description = "The original ID of the content"
                     },
                     new
@@ -60,7 +58,7 @@ namespace TextEventVisualizer.Services
 
             try
             {
-                HttpResponseMessage response = await Client.PostAsync($"{weaviateEndpoint}/schema", content);
+                HttpResponseMessage response = await client.PostAsync($"{weaviateEndpoint}/schema", content);
                 response.EnsureSuccessStatusCode();
                 Console.WriteLine("Schema created successfully.");
                 var responseBody = await response.Content.ReadAsStringAsync();
@@ -72,7 +70,7 @@ namespace TextEventVisualizer.Services
             }
         }
 
-        public async Task InsertDataAsync(string text, string originalId, EmbeddingCategory category)
+        public async Task InsertDataAsync(string text, int originalId, EmbeddingCategory category)
         {
             var data = new
             {
@@ -88,10 +86,62 @@ namespace TextEventVisualizer.Services
             var jsonRequest = JsonSerializer.Serialize(data);
             var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
 
-            var response = await Client.PostAsync($"{weaviateEndpoint}/objects", content);
+            var response = await client.PostAsync($"{weaviateEndpoint}/objects", content);
             response.EnsureSuccessStatusCode();
             Console.WriteLine(await response.Content.ReadAsStringAsync());
         }
+
+        public async Task<bool> ArticleExistsAsync(int originalId, EmbeddingCategory category)
+        {
+            string graphqlQuery = $@"
+            {{
+                ""query"": ""{{
+                    Get {{
+                        Embedding(
+                            where: {{
+                                operator: And,
+                                operands: [
+                                    {{
+                                        path: [\""originalId\""],
+                                        operator: Equal,
+                                        valueNumber: {originalId}
+                                    }},
+                                    {{
+                                        path: [\""category\""],
+                                        operator: Equal,
+                                        valueNumber: {(int)category}
+                                    }}
+                                ]
+                            }},
+                            limit: 1
+                        ) {{
+                            originalId
+                        }}
+                    }}
+                }}""
+            }}".Replace("\r", "").Replace("\n", " ").Replace("    ", "");
+
+            var content = new StringContent(graphqlQuery, Encoding.UTF8, "application/json");
+
+            try
+            {
+                var response = await client.PostAsync($"{weaviateEndpoint}/graphql", content);
+                if (!response.IsSuccessStatusCode)
+                {
+                    Console.WriteLine($"GraphQL query failed. Status: {response.StatusCode}. Response body: {await response.Content.ReadAsStringAsync()}");
+                    return false;
+                }
+
+                var responseBody = await response.Content.ReadAsStringAsync();
+                return responseBody.Contains("originalId");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"An error occurred: {e.Message}");
+                return false;
+            }
+        }
+
 
         public async Task<EmbeddingQueryResponse> QueryDataAsync(EmbeddingQueryRequest request)
         {
@@ -99,7 +149,6 @@ namespace TextEventVisualizer.Services
             var promptConcepts = string.Join(", ", request.Prompts.Select(p => $"\\\" {p} \\\""));
             var positiveConcepts = string.Join(", ", request.PositiveBias.Concepts.Select(p => $"\\\"{p}\\\""));
             var negativeConcepts = string.Join(", ", request.NegativeBias.Concepts.Select(p => $"\\\"{p}\\\""));
-
             string graphqlQuery = $@"
             {{
                 ""query"": ""{{
@@ -121,7 +170,7 @@ namespace TextEventVisualizer.Services
                             where: {{
                                 path: [\""category\""],
                                 operator: Equal,
-                                valueNumber: 0
+                                valueNumber: {(int)request.Category}
                             }}
                         ) {{
                             category
@@ -142,7 +191,7 @@ namespace TextEventVisualizer.Services
             var embeddingQueryResult = new EmbeddingQueryResponse();
             try
             {
-                var response = await Client.PostAsync($"{weaviateEndpoint}/graphql", content);
+                var response = await client.PostAsync($"{weaviateEndpoint}/graphql", content);
                 if (!response.IsSuccessStatusCode)
                 {
                     var error = await response.Content.ReadAsStringAsync();
@@ -167,7 +216,7 @@ namespace TextEventVisualizer.Services
             string apiKey = "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";
             string apiUrl = "https://api-inference.huggingface.co/models/facebook/bart-large-cnn";
 
-            Client.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
+            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
 
             var requestData = new
             {
@@ -179,7 +228,7 @@ namespace TextEventVisualizer.Services
 
             try
             {
-                HttpResponseMessage response = await Client.PostAsync(apiUrl, content);
+                HttpResponseMessage response = await client.PostAsync(apiUrl, content);
                 response.EnsureSuccessStatusCode();
                 string responseBody = await response.Content.ReadAsStringAsync();
                 return responseBody;
@@ -191,6 +240,31 @@ namespace TextEventVisualizer.Services
             }
 
             return "";
+        }
+
+        public async Task<bool> Ping()
+        {
+            try
+            {
+                HttpResponseMessage response = await client.GetAsync(weaviateEndpoint);
+                if (response.IsSuccessStatusCode)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            catch (HttpRequestException e)
+            {
+                return false;
+            }
+        }
+
+        public string GetAPIEndpoint()
+        {
+            return weaviateEndpoint;
         }
     }
 }
