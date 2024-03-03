@@ -12,6 +12,7 @@
         public DateTime Date { get; set; }
         public bool HasBeenScraped { get; set; }
         public bool UrlDoesntExistAnymore { get; set; }
+        public string? Summary { get; set; }
     }
 
 }

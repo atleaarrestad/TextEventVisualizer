@@ -2,7 +2,8 @@
 {
     public enum EmbeddingCategory
     {
-        Article,
-        Paragraph
+        Article = 0,
+        Paragraph = 1,
+        Summary = 2
     }
 }
