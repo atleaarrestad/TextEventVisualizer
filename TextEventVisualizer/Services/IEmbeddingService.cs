@@ -7,10 +7,12 @@ namespace TextEventVisualizer.Services
     public interface IEmbeddingService
     {
         Task SetupSchemaAsync();
-        Task InsertDataAsync(string text, int originalId, EmbeddingCategory category);
+        Task<bool> SchemaExist();
+        Task<bool> InsertDataAsync(string text, int originalId, EmbeddingCategory category);
         Task<bool> ArticleExistsAsync(int originalId, EmbeddingCategory category);
         Task<EmbeddingQueryResponse> QueryDataAsync(EmbeddingQueryRequest request);
         Task<bool> Ping();
         string GetAPIEndpoint();
+        Task<int> GetEmbeddingEntriesCountInCategory(EmbeddingCategory category);
     }
 }

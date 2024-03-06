@@ -1,0 +1,195 @@
+﻿@using Models.Response
+@using Models.Request
+@using Models
+@using Extentions
+@page "/weaviate/setup"
+@inject Services.IEmbeddingService EmbeddingService
+@inject Services.IArticleService ArticleService
+@inject Services.IHuggingFaceService HuggingFaceService
+
+<div>
+    <h1 class="text-center">Weaviate vector database setup</h1>
+    <h3 class="text-center">@progressMessage</h3>
+</div>
+
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th class="distance-column">Description</th>
+                <th class="distance-column">Status</th>
+                <th class="certainty-column">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="@(weaviatePing ? "success" : "failure")">
+
+                <td>Weaviate connection</td>
+                @if (weaviatePing)
+                {
+                    <td>success</td>
+                    <td>no action needed</td>
+                }
+                else
+                {
+                    <td>no connection to @EmbeddingService.GetAPIEndpoint()</td>
+                    <td>run 'docker-compose up' in the project directory using a terminal</td>
+                }
+            </tr>
+            <tr class="@(schemaExist ? "success" : "failure")">
+                <td>Schema exist</td>
+                @if (schemaExist)
+                {
+                    <td>success</td>
+                    <td>no action needed</td>
+                }
+                else
+                {
+                    <td>No schema found</td>
+                    <td>Both Schema and some data needs to exist for weaviate to acknowledge the schema. continue adding data in the step below</td>
+                }
+            </tr>
+            <tr class="@(articleCount > 0 ? "success" : "failure")">
+                <td>Vectorized article content count</td>
+                @if (articleCount == -1)
+                {
+                    <td>Error occured when trying to fetch count</td>
+                }
+                else if (articleCount == 0)
+                {
+                    <td>Found 0 articles</td>
+                }
+                else
+                {
+                    <td>Found @articleCount articles</td>
+                }
+                <td><button @onclick="() => OnAddAllScrapedArticlesButtonPressed(EmbeddingCategory.Article)">Add article content</button></td>
+
+            </tr>
+            <tr class="@(summaryCount > 0 ? "success" : "failure")">
+                <td>Vectorized article content count</td>
+                @if (summaryCount == -1)
+                {
+                    <td>Error occured when trying to fetch count</td>
+                }
+                else if (summaryCount == 0)
+                {
+                    <td>Found 0 articles</td>
+                }
+                else
+                {
+                    <td>Found @summaryCount articles</td>
+                }
+                <td><button @onclick="() => OnAddAllScrapedArticlesButtonPressed(EmbeddingCategory.Summary)">Add article summary</button></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+@code {
+    public bool weaviatePing = false;
+    public bool schemaExist = false;
+    public int articleCount = 0;
+    public int summaryCount = 0;
+    public string progressMessage = "";
+    public EmbeddingQueryResponse response;
+
+
+    protected async override void OnInitialized()
+    {
+        weaviatePing = await EmbeddingService.Ping();
+        schemaExist = await EmbeddingService.SchemaExist();
+        articleCount = await EmbeddingService.GetEmbeddingEntriesCountInCategory(EmbeddingCategory.Article);
+        summaryCount = await EmbeddingService.GetEmbeddingEntriesCountInCategory(EmbeddingCategory.Summary);
+        StateHasChanged();
+    }
+
+    public async void OnAddAllScrapedArticlesButtonPressed(EmbeddingCategory category)
+    {
+        // Adding schema here because its not possible to check if schema exist
+        // if the schema does not have data in it. weaviate will return not found if no data even with schema added.
+        await EmbeddingService.SetupSchemaAsync();  
+        var articles = await this.ArticleService.GetArticlesAsync(scraped: true);
+        var successCount = 0;
+        var failureCount = 0;
+        var categoryText = category == EmbeddingCategory.Article ? "Articles" : "Summaries";
+        foreach (var article in articles)
+        {
+            progressMessage = $"Successfully added {successCount} {categoryText}. A total of {failureCount} failures";
+            StateHasChanged();
+            if (string.IsNullOrWhiteSpace(article.Content))
+            {
+                failureCount++;
+                continue;
+            }
+            var exist = await EmbeddingService.ArticleExistsAsync(article.Id, category);
+            if (exist)
+            {
+                successCount++;
+                continue;
+            }
+
+            var result = await EmbeddingService.InsertDataAsync(article.Content, article.Id, category);
+            if (result)
+            {
+                successCount++;
+            }
+            else
+            {
+                failureCount++;
+            }
+        }
+        progressMessage = $"Finished! added {successCount} {categoryText}. A total of {failureCount} failures";
+        StateHasChanged();
+    }
+
+    public async void OnSummarizeAllArticlesButtonPressed()
+    {
+        var articles = await ArticleService.GetArticlesAsync(scraped: true);
+        var index = 1;
+        var success = "";
+        foreach (var article in articles)
+        {
+            success = "Summary was a failure";
+            if (!string.IsNullOrEmpty(article.Summary) || string.IsNullOrEmpty(article.Content))
+            {
+                index++;
+                continue;
+            }
+
+
+            await Task.Delay(500);
+
+            try
+            {
+                var cleanContent = article.Content.RemoveInvalidCharacters();
+                var summary = await HuggingFaceService.SummarizeText(cleanContent);
+                if (!string.IsNullOrEmpty(summary))
+                {
+                    article.Summary = summary;
+                    await ArticleService.UpdateArticleAsync(article);
+                    success = "Summary was a success";
+                }
+
+            }
+            catch (HttpRequestException e)
+            {
+                
+                if (e.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
+                {
+                    Console.WriteLine("too many requests, Huggingface is blocking the call. aborting...");
+                    return;
+                }
+                if (e.StatusCode == System.Net.HttpStatusCode.BadRequest)
+                {
+                    Console.WriteLine("Something is wrong with the content string. aborting...");
+                }
+                
+            }
+
+            Console.WriteLine($"finished {index} of {articles.Count} articles. {success}");
+            index++;
+
+        }
+    }
+}

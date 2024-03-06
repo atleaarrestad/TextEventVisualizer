@@ -5,6 +5,8 @@ using System.Text.Json;
 using TextEventVisualizer.Models;
 using TextEventVisualizer.Models.Request;
 using TextEventVisualizer.Models.Response;
+using System.Diagnostics;
+
 
 
 namespace TextEventVisualizer.Services
@@ -70,7 +72,23 @@ namespace TextEventVisualizer.Services
             }
         }
 
-        public async Task InsertDataAsync(string text, int originalId, EmbeddingCategory category)
+        public async Task<bool> SchemaExist()
+        {
+            try
+            {
+                //this will check to see if the Embedding schema exist, but will only return OK if data is also stored in this schema.
+                HttpResponseMessage response = await client.GetAsync($"{weaviateEndpoint}/schema/Embedding");
+                response.EnsureSuccessStatusCode();
+                return true;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Exception caught: {e.Message}");
+                return false;
+            }
+        }
+
+        public async Task<bool> InsertDataAsync(string text, int originalId, EmbeddingCategory category)
         {
             var data = new
             {
@@ -85,10 +103,17 @@ namespace TextEventVisualizer.Services
 
             var jsonRequest = JsonSerializer.Serialize(data);
             var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
-
-            var response = await client.PostAsync($"{weaviateEndpoint}/objects", content);
-            response.EnsureSuccessStatusCode();
-            Console.WriteLine(await response.Content.ReadAsStringAsync());
+            try
+            {
+                var response = await client.PostAsync($"{weaviateEndpoint}/objects", content);
+                response.EnsureSuccessStatusCode();
+                Console.WriteLine(await response.Content.ReadAsStringAsync());
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            } 
         }
 
         public async Task<bool> ArticleExistsAsync(int originalId, EmbeddingCategory category)
@@ -211,35 +236,42 @@ namespace TextEventVisualizer.Services
             return embeddingQueryResult ?? new();
         }
 
-        public async Task<string> testHuggingFace(string input)
+        public async Task<int> GetEmbeddingEntriesCountInCategory(EmbeddingCategory category)
         {
-            string apiKey = "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";
-            string apiUrl = "https://api-inference.huggingface.co/models/facebook/bart-large-cnn";
-
-            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
-
-            var requestData = new
+            var query = new
             {
-                inputs = input,
+                query = $@"{{
+                Aggregate {{
+                    Embedding(where: {{operator: Equal, path: [""category""], valueNumber: {(int)category}}}) {{
+                        meta {{
+                            count
+                        }}
+                    }}
+                }}
+            }}"
             };
 
-            string jsonString = JsonSerializer.Serialize(requestData);
-            var content = new StringContent(jsonString, Encoding.UTF8, "application/json");
+            var queryJson = JsonSerializer.Serialize(query);
+            var content = new StringContent(queryJson, Encoding.UTF8, "application/json");
 
             try
             {
-                HttpResponseMessage response = await client.PostAsync(apiUrl, content);
-                response.EnsureSuccessStatusCode();
+                HttpResponseMessage response = await client.PostAsync($"{weaviateEndpoint}/graphql", content);
                 string responseBody = await response.Content.ReadAsStringAsync();
-                return responseBody;
-            }
-            catch (HttpRequestException e)
-            {
-                Console.WriteLine("\nException Caught!");
-                Console.WriteLine("Message :{0} ", e.Message);
-            }
+                response.EnsureSuccessStatusCode();
 
-            return "";
+                using (JsonDocument doc = JsonDocument.Parse(responseBody))
+                {
+                    var root = doc.RootElement;
+                    var count = root.GetProperty("data").GetProperty("Aggregate").GetProperty("Embedding")[0].GetProperty("meta").GetProperty("count").GetInt32();
+                    return count;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Exception caught: {e.Message}");
+                return -1;
+            }
         }
 
         public async Task<bool> Ping()

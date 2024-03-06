@@ -2,43 +2,27 @@
 @using Models.Request
 @using Models
 @using Extentions
-@page "/weaviate"
+@page "/weaviate/search"
 @inject Services.IEmbeddingService EmbeddingService
 @inject Services.IArticleService ArticleService
-@inject Services.IHuggingFaceService HuggingFaceService
 
 @if (weaviatePing)
 {
-    <span class="title">Clustering </span>
-    <span class="ping-circle"></span>
-    <span class="ping-success">Weaviate connected</span>
+    <div class="center">
+        <span class="title">Vector search </span>
+        <span class="ping-circle"></span>
+        <span class="ping-success">Weaviate connected</span>
+    </div>
 }
 else
 {
-    <div class="ping-failure">Not able to ping weaviate at address @EmbeddingService.GetAPIEndpoint()</div>
-    <div class="ping-failure">Make sure the weaviate docker container is running</div>
+    <div class ="center">
+        <div class="ping-failure">Not able to ping weaviate at address @EmbeddingService.GetAPIEndpoint()</div>
+        <div class="ping-failure">Make sure the weaviate docker container is running</div>
+    </div>
 }
 
 @if (weaviatePing){
-    <br />
-    <div>
-        <button @onclick="OnAddSchemaButtonPressed">Create schema for vector database</button>
-    </div>
-    <br />
-
-    <div>
-        <button @onclick="OnAddAllScrapedArticlesButtonPressed">Vectorise and add all articles to database</button>
-    </div>
-    <div>
-        <button @onclick="OnSummarizeAllArticlesButtonPressed">Summarize all articles and update the database</button>
-    </div>
-    <div>
-        <button @onclick="testduplicate">testduplicate</button>
-    </div>
-    <br />
-    <br />
-    <br />
-    <br />
 
     <div class="search-container">
     <h3>Advanced Search</h3>
@@ -130,34 +114,6 @@ else
     }
 
 
-    public async void OnAddSchemaButtonPressed()
-    {
-        await EmbeddingService.SetupSchemaAsync();
-        Console.WriteLine("ran adding schema");
-    }
-
-    public async void OnAddAllScrapedArticlesButtonPressed()
-    {
-        var articles = await this.ArticleService.GetArticlesAsync(scraped: true);
-        foreach (var article in articles)
-        {
-            if (!string.IsNullOrWhiteSpace(article.Content))
-            {
-                var exist = await EmbeddingService.ArticleExistsAsync(article.Id, EmbeddingCategory.Article);
-                if (!exist)
-                    await EmbeddingService.InsertDataAsync(article.Content, article.Id, EmbeddingCategory.Article);
-            }
-
-            if (!string.IsNullOrWhiteSpace(article.Summary))
-            {
-                var exist = await EmbeddingService.ArticleExistsAsync(article.Id, EmbeddingCategory.Summary);
-                if (!exist)
-                    await EmbeddingService.InsertDataAsync(article.Summary!, article.Id, Models.EmbeddingCategory.Summary);
-            }
-        }
-    }
-
-
     public async void OnQueryVectorButtonPressed()
     {
         var searchConcepts = searchString.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).ToList();
@@ -177,60 +133,5 @@ else
         response = await EmbeddingService.QueryDataAsync(request);
         StateHasChanged();
         Console.WriteLine("ran vector search");
-    }
-
-    public async void OnSummarizeAllArticlesButtonPressed()
-    {
-        var articles = await ArticleService.GetArticlesAsync(scraped: true);
-        var index = 1;
-        var success = "";
-        foreach (var article in articles)
-        {
-            success = "Summary was a failure";
-            if (!string.IsNullOrEmpty(article.Summary) || string.IsNullOrEmpty(article.Content))
-            {
-                index++;
-                continue;
-            }
-
-
-            await Task.Delay(500);
-
-            try
-            {
-                var cleanContent = article.Content.RemoveInvalidCharacters();
-                var summary = await HuggingFaceService.SummarizeText(cleanContent);
-                if (!string.IsNullOrEmpty(summary))
-                {
-                    article.Summary = summary;
-                    await ArticleService.UpdateArticleAsync(article);
-                    success = "Summary was a success";
-                }
-
-            }
-            catch (HttpRequestException e)
-            {
-                
-                if (e.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
-                {
-                    Console.WriteLine("too many requests, Huggingface is blocking the call. aborting...");
-                    return;
-                }
-                if (e.StatusCode == System.Net.HttpStatusCode.BadRequest)
-                {
-                    Console.WriteLine("Something is wrong with the content string. aborting...");
-                }
-                
-            }
-
-            Console.WriteLine($"finished {index} of {articles.Count} articles. {success}");
-            index++;
-
-        }
-    }
-    public async void testduplicate()
-    {
-        var result = await EmbeddingService.ArticleExistsAsync(3499, Models.EmbeddingCategory.Article);
-        Console.WriteLine(result);
     }
 }
