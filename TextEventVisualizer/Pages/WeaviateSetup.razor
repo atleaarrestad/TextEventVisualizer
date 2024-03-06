@@ -2,10 +2,12 @@
 @using Models.Request
 @using Models
 @using Extentions
+@using Services
+
 @page "/weaviate/setup"
-@inject Services.IEmbeddingService EmbeddingService
-@inject Services.IArticleService ArticleService
-@inject Services.IHuggingFaceService HuggingFaceService
+@inject IEmbeddingService EmbeddingService
+@inject IArticleService ArticleService
+@inject IHuggingFaceService HuggingFaceService
 
 <div>
     <h1 class="text-center">Weaviate vector database setup</h1>

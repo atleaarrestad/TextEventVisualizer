@@ -1,0 +1,34 @@
+﻿@using Models.Response
+@using Models.Request
+@using Models
+@using Extentions
+@using Services
+
+@page "/llm"
+@inject IEmbeddingService EmbeddingService
+@inject IArticleService ArticleService
+@inject ILargeLanguageModelService LargeLanguageModelService
+
+<div>
+    <h1>Ollama testing</h1>
+</div>
+
+<div>
+    <button @onclick="OnTestButtonClicked">test</button>
+    @response
+</div>
+
+@code {
+    private string response = "";
+    protected async override void OnInitialized()
+    {
+
+    }
+
+    private async void OnTestButtonClicked()
+    {
+        var article = (await ArticleService.GetArticlesAsync(limit: 1)).First();
+        response = await LargeLanguageModelService.Ask($"make a brief summary of the following article: {article.Content}");
+        StateHasChanged();
+    }
+}

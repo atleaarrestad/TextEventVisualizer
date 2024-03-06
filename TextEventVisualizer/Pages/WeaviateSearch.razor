@@ -2,9 +2,11 @@
 @using Models.Request
 @using Models
 @using Extentions
+@using Services
+
 @page "/weaviate/search"
-@inject Services.IEmbeddingService EmbeddingService
-@inject Services.IArticleService ArticleService
+@inject IEmbeddingService EmbeddingService
+@inject IArticleService ArticleService
 
 @if (weaviatePing)
 {
