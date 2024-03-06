@@ -61,13 +61,13 @@
                 }
                 else
                 {
-                    <td>Found @articleCount articles</td>
+                    <td>Found @articleCount vectorized articles</td>
                 }
-                <td><button @onclick="() => OnAddAllScrapedArticlesButtonPressed(EmbeddingCategory.Article)">Add article content</button></td>
+                <td><button @onclick="() => OnAddAllScrapedArticlesButtonPressed(EmbeddingCategory.Article)">Vectorize article content</button></td>
 
             </tr>
             <tr class="@(summaryCount > 0 ? "success" : "failure")">
-                <td>Vectorized article content count</td>
+                <td>Vectorized article summary count</td>
                 @if (summaryCount == -1)
                 {
                     <td>Error occured when trying to fetch count</td>
@@ -78,9 +78,9 @@
                 }
                 else
                 {
-                    <td>Found @summaryCount articles</td>
+                    <td>Found @summaryCount vectorized summaries</td>
                 }
-                <td><button @onclick="() => OnAddAllScrapedArticlesButtonPressed(EmbeddingCategory.Summary)">Add article summary</button></td>
+                <td><button @onclick="() => OnAddAllScrapedArticlesButtonPressed(EmbeddingCategory.Summary)">Vectorize article summary</button></td>
             </tr>
         </tbody>
     </table>
