@@ -1,7 +1,11 @@
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 using TextEventVisualizer.Data;
 using TextEventVisualizer.Repositories;
 using TextEventVisualizer.Services;
+
+CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
+CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
 
 var builder = WebApplication.CreateBuilder(args);
 
