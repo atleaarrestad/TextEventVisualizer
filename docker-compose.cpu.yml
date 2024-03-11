@@ -1,3 +1,4 @@
+# docker-compose.yml (same as your original file)
 version: '3.4'
 
 services:
