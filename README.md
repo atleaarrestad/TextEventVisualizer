@@ -27,7 +27,7 @@ Follow these steps to set up the TextEventVisualizer environment on your local m
      2. The terminal should now be in ubuntu, if not, type `wsl -d Ubuntu`
      3. Run `sudo apt-get update` to update your package lists.
      4. Run `sudo apt-get install -y nvidia-container-toolkit` to install the NVIDIA container toolkit.
-     5. Run `sudo apt install -y nvidia-driver-510` (replace `510` with the latest or required version for your system).
+     5. ~~Run `sudo apt install -y nvidia-driver-510` (replace `510` with the latest or required version for your system).~~ Probably not required according to [Nvidia WSL2](https://docs.nvidia.com/cuda/wsl-user-guide/index.html).
      6. Now, you should be able to run `nvidia-smi` and get information about your GPU, which means it was a success.
      7. check if docker is using WSL 2. go to docker -> settings -> resources - WSL 2 backend should be enabled
      8. exit the ubuntu terminal
