@@ -27,8 +27,9 @@
 
     private async void OnTestButtonClicked()
     {
-        var article = (await ArticleService.GetArticlesAsync(limit: 1)).First();
-        response = await LargeLanguageModelService.Ask($"make a brief summary of the following article: {article.Content}");
+        var article = (await ArticleService.GetArticleAsync(5319));
+
+        response = await LargeLanguageModelService.ExtractEventsFromText(article.Content);
         StateHasChanged();
     }
 }
