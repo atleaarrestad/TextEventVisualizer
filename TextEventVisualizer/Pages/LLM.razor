@@ -15,11 +15,22 @@
 
 <div>
     <button @onclick="OnTestButtonClicked">test</button>
-    @response
+    @if (events != null)
+    {
+        @foreach (var item in events)
+        {
+            <div>
+                <span>@item.Timestamp - @item.content</span>
+            </div>
+
+        }
+    }
 </div>
 
+
+
 @code {
-    private string response = "";
+    private List<Event> events;
     protected async override void OnInitialized()
     {
 
@@ -29,7 +40,7 @@
     {
         var article = (await ArticleService.GetArticleAsync(5319));
 
-        response = await LargeLanguageModelService.ExtractEventsFromText(article.Content);
+        events = await LargeLanguageModelService.ExtractEventsFromText(article.Content);
         StateHasChanged();
     }
 }

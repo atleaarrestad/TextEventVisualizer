@@ -26,6 +26,15 @@ namespace TextEventVisualizer.Extentions
             return result.ToLower();
 
         }
+        public static string RemoveInvalidCharactersForJSON(this string input)
+        {
+            if (string.IsNullOrEmpty(input))
+                return input;
+
+            string result = Regex.Replace(input, @"\s+", " ");
+            result = result.Trim();
+            return result;
+        }
 
 
     }
