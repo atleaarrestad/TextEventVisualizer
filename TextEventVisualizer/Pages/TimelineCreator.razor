@@ -2,6 +2,72 @@
 
 <PageTitle>Timeline Creator</PageTitle>
 
-<h1>Timeline Creator</h1>
+<h3>Event Timeline Settings</h3>
 
-<p>Page for creating timelines</p>
+<div class="settings-form">
+    <div class="section-header">
+        <div class="section-title">Article Clustering</div>
+        <hr />
+    </div>
+    <div class="input-pair">
+        <label for="search-term">Search Term:</label>
+        <input type="text" id="search-term" @bind="searchTerm" placeholder="corona virus, covid19" title="Term or concept to search for, seperate terms by comma. (required)" />
+        <input type="number" @bind="maxSearchDistance" title="The maximum allowed distance to the provided search term" step="0.05" min="0" max="2" />
+    </div>
+
+    <div class="input-pair">
+        <label for="positive-bias-term">Positive Bias Term:</label>
+        <input type="text" id="positive-bias-term" @bind="positiveBiasTerm" placeholder="Pandemic, full hospitals" title="Term or concept that will strengthen the search, seperate concepts by comma. (optional)" />
+        <input type="number" @bind="positiveBiasValue" title="How much the bias should impact the search" step="0.05" min="0" max="1" />
+    </div>
+
+    <div class="input-pair">
+        <label for="negative-bias-term">Negative Bias Term:</label>
+        <input type="text" id="negative-bias-term" @bind="negativeBiasTerm" placeholder="War, wildfires in Australia" title="Term or concept that will weaken the search, seperate concepts by comma. (optional)" />
+        <input type="number" @bind="negativeBiasValue" title="How much the bias should impact the search" step="0.05" min="0" max="1" />
+    </div>
+
+    <div class="section-header">
+        <div class="section-title">Article Cutoff</div>
+        <hr />
+    </div>
+
+    <div class="input-solo">
+        <label for="negative-bias-term">Maximum article count:</label>
+        <input type="number" @bind="maxArticleCount" title="The maximum amount of articles to find, these will be top results" step="1" min="1" max="100" />
+    </div>
+
+    <div class="input-solo">
+        <label for="negative-bias-term">Max delta distance from first result:</label>
+        <input type="number" @bind="maxDeltaFirstResult" title="The maximum value difference any result can have from the found article that is closest to the search vector" step="0.05" min="0" max="2" />
+    </div>
+
+    <div class="section-header">
+        <div class="section-title">Events</div>
+        <hr />
+    </div>
+
+    <div class="input-solo">
+        <label for="max-events">Max events for an article</label>
+        <input type="number" id="max-events" @bind="maxEventsEachArticle" title="Maximum amount of events to be extracted for each article" step="1" min="1" max="15" />
+    </div>
+
+    <button class="btn-submit" @onclick="CreateTimeline">Create Timeline</button>
+</div>
+
+@code {
+    private string searchTerm = "covid19, corona virus";
+    private float maxSearchDistance = 1.0f;
+    private string positiveBiasTerm = "Pandemic";
+    private float positiveBiasValue = .5f;
+    private string negativeBiasTerm = "Politics";
+    private float negativeBiasValue = .5f;
+    private int maxEventsEachArticle = 3;
+    private int maxArticleCount = 20;
+    private float maxDeltaFirstResult = .3f;
+
+    private void CreateTimeline()
+    {
+        // TODO
+    }
+}
