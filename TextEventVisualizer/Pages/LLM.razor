@@ -1,0 +1,46 @@
+﻿@using Models.Response
+@using Models.Request
+@using Models
+@using Extentions
+@using Services
+
+@page "/llm"
+@inject IEmbeddingService EmbeddingService
+@inject IArticleService ArticleService
+@inject ILargeLanguageModelService LargeLanguageModelService
+
+<div>
+    <h1>Ollama testing</h1>
+</div>
+
+<div>
+    <button @onclick="OnTestButtonClicked">test</button>
+    @if (events != null)
+    {
+        @foreach (var item in events)
+        {
+            <div>
+                <span>@item.Timestamp - @item.content</span>
+            </div>
+
+        }
+    }
+</div>
+
+
+
+@code {
+    private List<Event> events;
+    protected async override void OnInitialized()
+    {
+
+    }
+
+    private async void OnTestButtonClicked()
+    {
+        var article = (await ArticleService.GetArticleAsync(5319));
+
+        events = await LargeLanguageModelService.ExtractEventsFromText(article.Content);
+        StateHasChanged();
+    }
+}

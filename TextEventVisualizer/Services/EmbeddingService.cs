@@ -1,12 +1,8 @@
-﻿using System.Net.Http;
-using System;
-using System.Text;
+﻿using System.Text;
 using System.Text.Json;
 using TextEventVisualizer.Models;
 using TextEventVisualizer.Models.Request;
 using TextEventVisualizer.Models.Response;
-using System.Diagnostics;
-
 
 
 namespace TextEventVisualizer.Services
