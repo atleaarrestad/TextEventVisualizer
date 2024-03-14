@@ -29,8 +29,19 @@
         border-radius: 4px;
     }
 
-label{
+.label-with-info {
+    display: flex;
+    justify-content: space-between;
     width: 150px;
+}
+
+i {
+    align-self: center;
+}
+
+h1 {
+    text-align: center;
+    padding-bottom: 18px;
 }
 
 .input-solo {
