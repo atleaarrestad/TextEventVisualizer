@@ -3,6 +3,7 @@ using System.Globalization;
 using TextEventVisualizer.Data;
 using TextEventVisualizer.Repositories;
 using TextEventVisualizer.Services;
+using TextEventVisualizer.Services.Interfaces;
 
 CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
 CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
@@ -29,6 +30,7 @@ builder.Services.AddTransient<IHuggingFaceService, HuggingFaceService>();
 builder.Services.AddScoped<IArticleService, ArticleService>();
 builder.Services.AddScoped<IJsonService, JsonService>();
 builder.Services.AddScoped<IEmbeddingService, EmbeddingService>();
+builder.Services.AddScoped<ITimelineService, TimelineService>();
 
 var app = builder.Build();
 
