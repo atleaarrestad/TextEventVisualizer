@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <Folder Include="Components\" />
+    <Folder Include="wwwroot\lib\fontawesome\" />
   </ItemGroup>
 
 </Project>
