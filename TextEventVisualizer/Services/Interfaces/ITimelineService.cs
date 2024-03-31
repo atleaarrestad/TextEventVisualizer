@@ -1,9 +1,12 @@
-﻿using TextEventVisualizer.Models.Request;
+﻿using TextEventVisualizer.Models;
+using TextEventVisualizer.Models.Request;
 
-namespace TextEventVisualizer.Services.Interfaces
+namespace TextEventVisualizer.Services
 {
     public interface ITimelineService
     {
-        Task<int> GenerateTimeline(TimelineRequest timelineRequest);
+        Task<Timeline> GenerateTimeline(TimelineRequest timelineRequest);
+        Task<int> AddTimeline(Timeline timeline);
+        Task<Timeline?> GetTimeline(int id);
     }
 }

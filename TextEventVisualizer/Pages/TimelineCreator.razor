@@ -1,4 +1,8 @@
 ﻿@page "/timelinecreator"
+@using Services
+@using Models.Request
+@using Models
+@inject ITimelineService timelineService
 
 <PageTitle>Timeline Creator</PageTitle>
 
@@ -95,8 +99,31 @@
     private int MaxArticleCount = 20;
     private float MaxDistanceDeltaForArticles = .3f;
 
-    private void CreateTimeline()
+    private async void CreateTimeline()
     {
-        // TODO
+        var request = new TimelineRequest(this.ArticleClusterSearch)
+        {
+            ArticleClusterSearchPositiveBias = new Bias()
+            {
+                Concepts = this.ArticleClusterSearchPositiveBias.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).ToList(),
+                Force = this.ArticleClusterSearchPositiveBiasWeight
+            },
+            ArticleClusterSearchNegativeBias = new Bias()
+            {
+                Concepts = this.ArticleClusterSearchNegativeBias.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).ToList(),
+                Force = this.ArticleClusterSearchNegativeBiasWeight
+            },
+            ArticleClusterSearch = this.ArticleClusterSearch,
+            Category = EmbeddingCategory.Article,
+            DesiredEventCountForEachArticle = this.DesiredEventCountForEachArticle,
+            MaxArticleClusterSearchDistance = this.MaxArticleClusterSearchDistance,
+            MaxArticleCount = this.MaxArticleCount,
+            MaxDistanceDeltaForArticles = this.MaxDistanceDeltaForArticles,
+            MaxEventCountForEachArticle = this.MaxEventCountForEachArticle
+        };
+
+        var timeline = await this.timelineService.GenerateTimeline(request);
+        await timelineService.AddTimeline(timeline);
+
     }
 }

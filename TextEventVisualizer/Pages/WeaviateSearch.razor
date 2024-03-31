@@ -61,7 +61,7 @@ else
     </div>
 
 
-    @if (response != null && response.data != null)
+    @if (response != null && response.Any())
     {
         <div class="table-container">
             <table>
@@ -74,7 +74,7 @@ else
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var item in response.data.Get.Embedding)
+                    @foreach (var item in response)
                     {
                         <tr>
                             <td>@item.originalId</td>
@@ -107,7 +107,7 @@ else
     public string contentString = "";
 
     public bool weaviatePing = false;
-    public EmbeddingQueryResponse response;
+    public List<Embedding> response;
 
     protected async override void OnInitialized()
     {

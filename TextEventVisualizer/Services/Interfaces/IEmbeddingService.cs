@@ -10,7 +10,7 @@ namespace TextEventVisualizer.Services
         Task<bool> SchemaExist();
         Task<bool> InsertDataAsync(string text, int originalId, EmbeddingCategory category);
         Task<bool> ArticleExistsAsync(int originalId, EmbeddingCategory category);
-        Task<EmbeddingQueryResponse> QueryDataAsync(EmbeddingQueryRequest request);
+        Task<List<Embedding>> QueryDataAsync(EmbeddingQueryRequest request);
         Task<bool> Ping();
         string GetAPIEndpoint();
         Task<int> GetEmbeddingEntriesCountInCategory(EmbeddingCategory category);

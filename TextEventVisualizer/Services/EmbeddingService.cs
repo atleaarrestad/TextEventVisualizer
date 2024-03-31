@@ -164,7 +164,7 @@ namespace TextEventVisualizer.Services
         }
 
 
-        public async Task<EmbeddingQueryResponse> QueryDataAsync(EmbeddingQueryRequest request)
+        public async Task<List<Embedding>> QueryDataAsync(EmbeddingQueryRequest request)
         {
 
             var promptConcepts = string.Join(", ", request.Prompts.Select(p => $"\\\" {p} \\\""));
@@ -209,7 +209,6 @@ namespace TextEventVisualizer.Services
 
             Console.WriteLine(graphqlQuery);
             var content = new StringContent(graphqlQuery, Encoding.UTF8, "application/json");
-            var embeddingQueryResult = new EmbeddingQueryResponse();
             try
             {
                 var response = await client.PostAsync($"{weaviateEndpoint}/graphql", content);
@@ -217,19 +216,19 @@ namespace TextEventVisualizer.Services
                 {
                     var error = await response.Content.ReadAsStringAsync();
                     Console.WriteLine($"GraphQL query failed. Status: {response.StatusCode}. Response body: {error}");
-                    return embeddingQueryResult;
+                    return new();
                 }
 
                 var responseBody = await response.Content.ReadAsStringAsync();
-                embeddingQueryResult = JsonSerializer.Deserialize<EmbeddingQueryResponse>(responseBody);
+                var embeddingQueryResult = JsonSerializer.Deserialize<EmbeddingQueryResponse>(responseBody);
+                return embeddingQueryResult?.data?.Get.Embedding ?? new();
 
             }
             catch (Exception e)
             {
                 Console.WriteLine($"An error occurred: {e.Message}");
+                return new();
             }
-
-            return embeddingQueryResult ?? new();
         }
 
         public async Task<int> GetEmbeddingEntriesCountInCategory(EmbeddingCategory category)
