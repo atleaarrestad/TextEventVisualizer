@@ -118,16 +118,12 @@ else
 
     public async void OnQueryVectorButtonPressed()
     {
-        var searchConcepts = searchString.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).ToList();
-        var positiveConsepts = positiveBias.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).ToList();
-        var negativeConsepts = negativeBias.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).ToList();
-
         var request = new EmbeddingQueryRequest();
-        request.Prompts = searchConcepts;
+        request.Prompts = searchString;
         request.Distance = distance;
-        request.PositiveBias.Concepts = positiveConsepts;
+        request.PositiveBias.Concepts = positiveBias;
         request.PositiveBias.Force = positiveWeight;
-        request.NegativeBias.Concepts = negativeConsepts;
+        request.NegativeBias.Concepts = negativeBias;
         request.NegativeBias.Force = negativeWeight;
         request.Category = Models.EmbeddingCategory.Article;
         request.Limit = 20;

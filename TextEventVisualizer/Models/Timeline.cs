@@ -4,6 +4,7 @@ namespace TextEventVisualizer.Models
 {
     public class Timeline
     {
+        public string Name { get; set; } = string.Empty;
         public DateTime CreationDate { get; set; }
         public List<TimelineChunk> TimelineChunks { get; set; } = [];
         public int TimelineRequestId { get; set; } // foreign key, set by entity framework

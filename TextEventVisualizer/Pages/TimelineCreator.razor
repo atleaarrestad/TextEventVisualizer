@@ -19,8 +19,8 @@
             <i class="fa fa-asterisk" aria-hidden="true" title="Required"></i>
             <i class="fas fa-info-circle" title="Text field -> Term or concept to search for, seperate terms by comma.&#013;Number field -> The maximum allowed distance an article vector can have from this search. a good match is usually between 0.3 and 0.6"></i>
         </div>
-        <input type="text" id="search-term" @bind="ArticleClusterSearch" placeholder="corona virus, covid19" />
-        <input type="number" @bind="MaxArticleClusterSearchDistance" step="0.05" min="0" max="2" />
+        <input type="text" id="search-term" @bind="timelineRequest.ArticleClusterSearch" placeholder="corona virus, covid19" />
+        <input type="number" @bind="timelineRequest.MaxArticleClusterSearchDistance" step="0.05" min="0" max="2" />
     </div>
 
     <div class="input-pair">
@@ -28,8 +28,8 @@
             <label for="positive-bias-term">Positive Bias Term:</label>
             <i class="fas fa-info-circle" title="Text field -> Term or concept that will strengthen the search, seperate concepts by comma.&#013;Number field -> How much the bias should impact the search"></i>
         </div>
-        <input type="text" id="positive-bias-term" @bind="ArticleClusterSearchPositiveBias" placeholder="Pandemic, full hospitals" />
-        <input type="number" @bind="ArticleClusterSearchPositiveBiasWeight" step="0.05" min="0" max="1" />
+        <input type="text" id="positive-bias-term" @bind="timelineRequest.ArticleClusterSearchPositiveBias!.Concepts" placeholder="Pandemic, full hospitals" />
+        <input type="number" @bind="timelineRequest.ArticleClusterSearchPositiveBias.Force" step="0.05" min="0" max="1" />
     </div>
 
     <div class="input-pair">
@@ -37,8 +37,8 @@
             <label for="negative-bias-term">Negative Bias Term:</label>
             <i class="fas fa-info-circle" title="Text field -> Term or concept that will weaken the search, seperate concepts by comma.&#013;Number field -> How much the bias should impact the search"></i>
         </div>
-        <input type="text" id="negative-bias-term" @bind="ArticleClusterSearchNegativeBias" placeholder="War, wildfires in Australia" />
-        <input type="number" @bind="ArticleClusterSearchNegativeBiasWeight" step="0.05" min="0" max="1" />
+        <input type="text" id="negative-bias-term" @bind="timelineRequest.ArticleClusterSearchNegativeBias!.Concepts" placeholder="War, wildfires in Australia" />
+        <input type="number" @bind="timelineRequest.ArticleClusterSearchNegativeBias.Force" step="0.05" min="0" max="1" />
     </div>
 
     <div class="section-header">
@@ -51,7 +51,7 @@
             <label for="negative-bias-term">Maximum article count:</label>
             <i class="fas fa-info-circle" title="Maximum amount of articles to retrieve from the clustering query"></i>
         </div>
-        <input type="number" @bind="MaxArticleCount" step="1" min="1" max="100" />
+        <input type="number" @bind="timelineRequest.MaxArticleCount" step="1" min="1" max="100" />
     </div>
 
     <div class="input-solo">
@@ -59,7 +59,7 @@
             <label for="negative-bias-term">Max delta distance from first result:</label>
             <i class="fas fa-info-circle" title="The maximum allowable deviation in distance value between any result and the article most closely matching the search vector.&#013;If the first article has a distance of 0.5 and this setting is at 0.3 then any article with a distance of 0.8 or above will not be included"></i>
         </div>
-        <input type="number" @bind="MaxDistanceDeltaForArticles" step="0.05" min="0" max="2" />
+        <input type="number" @bind="timelineRequest.MaxDistanceDeltaForArticles" step="0.05" min="0" max="2" />
     </div>
 
     <div class="section-header">
@@ -72,7 +72,7 @@
             <label for="desired-events">Desired event count for an article</label>
             <i class="fas fa-info-circle" title="The desired amount of events to be extracted using a large language model, the result may not always be exactly the desired amount. The events retrieved will be what the llm has deemed the most important"></i>
         </div>
-        <input type="number" id="desired-events" @bind="DesiredEventCountForEachArticle" step="1" min="1" max="15" />
+        <input type="number" id="desired-events" @bind="timelineRequest.DesiredEventCountForEachArticle" step="1" min="1" max="15" />
     </div>
 
     <div class="input-solo">
@@ -80,7 +80,7 @@
             <label for="max-events">Max event count for an article</label>
             <i class="fas fa-info-circle" title="Will remove any overflowing events exceeding this number"></i>
         </div>
-        <input type="number" id="max-events" @bind="MaxEventCountForEachArticle" step="1" min="1" max="15" />
+        <input type="number" id="max-events" @bind="timelineRequest.MaxEventCountForEachArticle" step="1" min="1" max="15" />
     </div>
     
 
@@ -98,31 +98,11 @@
     private int DesiredEventCountForEachArticle = 3;
     private int MaxArticleCount = 20;
     private float MaxDistanceDeltaForArticles = .3f;
+    private TimelineRequest timelineRequest = new();
 
     private async void CreateTimeline()
     {
-        var request = new TimelineRequest(this.ArticleClusterSearch)
-        {
-            ArticleClusterSearchPositiveBias = new Bias()
-            {
-                Concepts = this.ArticleClusterSearchPositiveBias.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).ToList(),
-                Force = this.ArticleClusterSearchPositiveBiasWeight
-            },
-            ArticleClusterSearchNegativeBias = new Bias()
-            {
-                Concepts = this.ArticleClusterSearchNegativeBias.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).ToList(),
-                Force = this.ArticleClusterSearchNegativeBiasWeight
-            },
-            ArticleClusterSearch = this.ArticleClusterSearch,
-            Category = EmbeddingCategory.Article,
-            DesiredEventCountForEachArticle = this.DesiredEventCountForEachArticle,
-            MaxArticleClusterSearchDistance = this.MaxArticleClusterSearchDistance,
-            MaxArticleCount = this.MaxArticleCount,
-            MaxDistanceDeltaForArticles = this.MaxDistanceDeltaForArticles,
-            MaxEventCountForEachArticle = this.MaxEventCountForEachArticle
-        };
-
-        var timeline = await this.timelineService.GenerateTimeline(request);
+        var timeline = await this.timelineService.GenerateTimeline(this.timelineRequest);
         await timelineService.AddTimeline(timeline);
 
     }

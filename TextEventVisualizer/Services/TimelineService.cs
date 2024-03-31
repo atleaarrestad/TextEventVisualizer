@@ -38,7 +38,7 @@ namespace TextEventVisualizer.Services
                 Limit = timelineRequest.MaxArticleCount,
                 NegativeBias = timelineRequest.ArticleClusterSearchNegativeBias,
                 PositiveBias = timelineRequest.ArticleClusterSearchPositiveBias,
-                Prompts = timelineRequest.ArticleClusterSearch.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).ToList()
+                Prompts = timelineRequest.ArticleClusterSearch
             };
 
             var embeddingQueryResult = await embeddingService.QueryDataAsync(queryRequest);

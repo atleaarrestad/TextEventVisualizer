@@ -166,10 +166,6 @@ namespace TextEventVisualizer.Services
 
         public async Task<List<Embedding>> QueryDataAsync(EmbeddingQueryRequest request)
         {
-
-            var promptConcepts = string.Join(", ", request.Prompts.Select(p => $"\\\" {p} \\\""));
-            var positiveConcepts = string.Join(", ", request.PositiveBias.Concepts.Select(p => $"\\\"{p}\\\""));
-            var negativeConcepts = string.Join(", ", request.NegativeBias.Concepts.Select(p => $"\\\"{p}\\\""));
             string graphqlQuery = $@"
             {{
                 ""query"": ""{{
@@ -177,14 +173,14 @@ namespace TextEventVisualizer.Services
                         Embedding(
                             limit: {request.Limit},
                             nearText: {{
-                                concepts: [{promptConcepts}],
+                                concepts: [\""{request.Prompts}\""],
                                 distance: {request.Distance},
                                 moveTo: {{
-                                    concepts: [{positiveConcepts}],
+                                    concepts: [\""{request.PositiveBias.Concepts}\""],
                                     force: {request.PositiveBias.Force}
                                 }},
                                 moveAwayFrom: {{
-                                    concepts: [{negativeConcepts}],
+                                    concepts: [\""{request.NegativeBias.Concepts}\""],
                                     force: {request.NegativeBias.Force}
                                 }}
                             }},
