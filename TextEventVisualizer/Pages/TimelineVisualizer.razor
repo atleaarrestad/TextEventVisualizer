@@ -1,7 +1,72 @@
 ﻿@page "/timelinevisualizer"
+@using TextEventVisualizer.Services
+@using TextEventVisualizer.Models
+@inject ITimelineService timelineService
 
 <PageTitle>Timeline Visualizer</PageTitle>
+<div class="center">
+    <h1>Timeline Visualizer</h1>
+    <div>
+        <select @bind="selectedTimelineId" class="form-control">
+            <option value="0">Select a timeline...</option>
+            @foreach (var timelineBriefInfo in timelineBriefInfos)
+            {
+                <option value="@timelineBriefInfo.Id">@timelineBriefInfo.Name</option>
+            }
+        </select>
+        <button @onclick="OnSelectTimeline">Show Timeline</button>
+    </div>
+</div>
 
-<h1>Timeline Visualizer</h1>
+<div class="timeline">
+    @if (activeTimeline != null)
+    {
+        <div class="timeline-header">
+            <h4>@activeTimeline.Name</h4>
+            <span>Created: @activeTimeline.CreationDate.ToLocalTime()</span>
+        </div>
+        <hr />
+        <div class="timeline-flex-container">
+            @foreach (var timelineChunk in activeTimeline.TimelineChunks)
+            {
+                <div class="timeline-chunk">
+                    <div class="chunk-header">
+                        <div class="article-headline">@timelineChunk.Article.Headline</div>
+                        <div class="article-publish-date">@timelineChunk.Article.Date.ToLocalTime().ToString("dd MMMM yyyy HH:mm")</div>
+                    </div>
+                    <hr />
+                    <div class="timeline-event-container">
+                        @foreach (var chunkEvent in timelineChunk.Events)
+                        {
+                            <div class="timeline-event">
+                                <div>@chunkEvent.Timestamp</div>
+                                <div>@chunkEvent.Content</div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
 
-<p>Page for visualizing events</p>
+
+
+@code{
+    private Timeline? activeTimeline = null;
+    private int selectedTimelineId = 0;
+    private List<TimelineBriefInfo> timelineBriefInfos = new();
+
+
+    protected async override void OnInitialized()
+    {
+        timelineBriefInfos = await timelineService.GetAllTimelinesBriefInfoAsync();
+        StateHasChanged();
+    }
+
+    public async void OnSelectTimeline()
+    {
+        this.activeTimeline = await timelineService.GetTimeline(this.selectedTimelineId);
+        StateHasChanged();
+    }
+}
