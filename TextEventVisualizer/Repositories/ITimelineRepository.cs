@@ -6,5 +6,6 @@ namespace TextEventVisualizer.Repositories
     {
         Task<int> AddTimeline(Timeline timeline);
         Task<Timeline?> GetTimeline(int id);
+        Task<List<TimelineBriefInfo>> GetAllTimelinesBriefInfoAsync();
     }
 }

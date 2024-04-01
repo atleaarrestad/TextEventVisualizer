@@ -44,6 +44,7 @@ namespace TextEventVisualizer.Services
             var embeddingQueryResult = await embeddingService.QueryDataAsync(queryRequest);
             var timeline = new Timeline();
             timeline.TimelineRequest = timelineRequest;
+            timeline.Name = timelineRequest.Name;
 
             foreach (var embedding in embeddingQueryResult)
             {
@@ -58,6 +59,11 @@ namespace TextEventVisualizer.Services
                 }
             }
             return timeline;
+        }
+
+        public Task<List<TimelineBriefInfo>> GetAllTimelinesBriefInfoAsync()
+        {
+            return timelineRepository.GetAllTimelinesBriefInfoAsync();
         }
     }
 }

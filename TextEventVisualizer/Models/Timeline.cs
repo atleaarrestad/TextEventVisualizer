@@ -19,5 +19,6 @@ namespace TextEventVisualizer.Models
         public int Id { get; set; } // Primary key, set by entity framework
         public int TimelineId { get; set; } // foreign key, set by entity framework
         public Timeline Timeline { get; set; } // navigation property, set by entity framework 
+        public Article Article { get; set; } // navigation property for Article
     }
 }

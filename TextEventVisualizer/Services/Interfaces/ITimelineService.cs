@@ -8,5 +8,6 @@ namespace TextEventVisualizer.Services
         Task<Timeline> GenerateTimeline(TimelineRequest timelineRequest);
         Task<int> AddTimeline(Timeline timeline);
         Task<Timeline?> GetTimeline(int id);
+        Task<List<TimelineBriefInfo>> GetAllTimelinesBriefInfoAsync();
     }
 }

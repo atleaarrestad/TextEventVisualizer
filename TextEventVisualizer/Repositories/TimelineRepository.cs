@@ -18,12 +18,23 @@ namespace TextEventVisualizer.Repositories
             return timeline.Id;
         }
 
+        public Task<List<TimelineBriefInfo>> GetAllTimelinesBriefInfoAsync()
+        {
+            return _context.Timelines
+                .Select(timeline => new TimelineBriefInfo(timeline.Name, timeline.Id))
+                .ToListAsync();
+        }
+
         public Task<Timeline?> GetTimeline(int id)
         {
             return _context.Timelines
                 .Include(timeline => timeline.TimelineChunks)
-                .ThenInclude(chunk => chunk.Events)
+                    .ThenInclude(chunk => chunk.Events)
+                .Include(timeline => timeline.TimelineChunks)
+                    .ThenInclude(chunk => chunk.Article)
                 .FirstOrDefaultAsync(timeline => timeline.Id == id);
         }
+
+
     }
 }

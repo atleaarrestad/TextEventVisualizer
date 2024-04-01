@@ -38,6 +38,11 @@ namespace TextEventVisualizer.Data
                 .WithOne(e => e.TimelineChunk)
                 .HasForeignKey(e => e.TimelineChunkId);
 
+            modelBuilder.Entity<TimelineChunk>()
+                .HasOne(tc => tc.Article)
+                .WithMany()
+                .HasForeignKey(tc => tc.ArticleId);
+
             modelBuilder.Entity<TimelineRequest>().OwnsOne(tr => tr.ArticleClusterSearchPositiveBias, bias =>
             {
                 bias.WithOwner();
