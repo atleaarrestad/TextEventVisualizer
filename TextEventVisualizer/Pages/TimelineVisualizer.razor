@@ -4,27 +4,27 @@
 @inject ITimelineService timelineService
 
 <PageTitle>Timeline Visualizer</PageTitle>
-<div class="center">
-    <h1>Timeline Visualizer</h1>
-    <div>
-        <select @bind="selectedTimelineId" class="form-control">
-            <option value="0">Select a timeline...</option>
-            @foreach (var timelineBriefInfo in timelineBriefInfos)
-            {
-                <option value="@timelineBriefInfo.Id">@timelineBriefInfo.Name</option>
-            }
-        </select>
-        <button @onclick="OnSelectTimeline">Show Timeline</button>
-    </div>
-</div>
+
+<h1>Timeline Visualizer</h1>
 
 <div class="timeline">
+    <div class="timeline-header">
+        <div class="select-container">
+            <select @bind="selectedTimelineId">
+                <option value="0">Select a timeline...</option>
+                @foreach (var timelineBriefInfo in timelineBriefInfos)
+                {
+                    <option value="@timelineBriefInfo.Id">@timelineBriefInfo.Name</option>
+                }
+            </select>
+        </div>
+        @if (activeTimeline != null)
+        {
+            <span>Created: @activeTimeline.CreationDate.ToLocalTime()</span>
+        }
+    </div>
     @if (activeTimeline != null)
     {
-        <div class="timeline-header">
-            <h4>@activeTimeline.Name</h4>
-            <span>Created: @activeTimeline.CreationDate.ToLocalTime()</span>
-        </div>
         <hr />
         <div class="timeline-flex-container">
             @foreach (var timelineChunk in activeTimeline.TimelineChunks)
@@ -55,7 +55,18 @@
 
 @code{
     private Timeline? activeTimeline = null;
-    private int selectedTimelineId = 0;
+    private int _selectedTimelineId = 0;
+    public int selectedTimelineId {
+        get => _selectedTimelineId;
+        set
+        {
+            if (_selectedTimelineId != value && value != 0)
+            {
+                _selectedTimelineId = value;
+                OnSelectTimeline();
+            }
+        }
+    }
     private List<TimelineBriefInfo> timelineBriefInfos = new();
 
 
@@ -72,4 +83,5 @@
 
         StateHasChanged();
     }
+
 }

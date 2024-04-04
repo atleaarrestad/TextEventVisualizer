@@ -1,5 +1,10 @@
-﻿.timeline {
-    max-width: 1200px;
+﻿h1 {
+    text-align: center;
+}
+
+.timeline {
+    max-width: calc(100vw - 300px);
+    max-height: calc(100vh - 200px);
     margin: auto;
     padding: 20px;
 }
@@ -20,6 +25,24 @@
         color: #666;
     }
 
+    .timeline-header select {
+        display: block;
+        width: auto;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        background-color: white;
+        font-family: Arial, sans-serif;
+        margin: 0 auto;
+        text-align: center;
+    }
+
+    .timeline-header .select-container {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 10px;
+    }
+
 hr {
     border: 0;
     height: 1px;
@@ -28,9 +51,10 @@ hr {
 
 .timeline-flex-container {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 20px;
-    justify-content: center;
+
+    overflow-x: auto;
 }
 
 .timeline-chunk {
@@ -40,13 +64,14 @@ hr {
     border-radius: 4px;
     overflow: hidden;
     padding: 15px;
-    flex: 0 1 300px;
+    min-width: 300px;
 }
 
 .article-headline {
     text-align: center;
     font-weight: bold;
     margin-bottom: 5px;
+    min-height: 80px;
 }
 .article-source {
     text-align: center;
