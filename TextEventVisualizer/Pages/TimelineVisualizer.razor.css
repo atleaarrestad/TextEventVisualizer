@@ -48,6 +48,12 @@ hr {
     font-weight: bold;
     margin-bottom: 5px;
 }
+.article-source {
+    text-align: center;
+    display: block;
+    color: #707070;
+    margin-bottom: 5px;
+}
 
 .article-publish-date {
     text-align: center;

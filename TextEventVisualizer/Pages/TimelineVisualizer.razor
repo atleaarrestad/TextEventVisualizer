@@ -32,6 +32,7 @@
                 <div class="timeline-chunk">
                     <div class="chunk-header">
                         <div class="article-headline">@timelineChunk.Article.Headline</div>
+                        <a class="article-source" href="@timelineChunk.Article.WebUrl">(Source)</a>
                         <div class="article-publish-date">@timelineChunk.Article.Date.ToLocalTime().ToString("dd MMMM yyyy HH:mm")</div>
                     </div>
                     <hr />
@@ -67,6 +68,8 @@
     public async void OnSelectTimeline()
     {
         this.activeTimeline = await timelineService.GetTimeline(this.selectedTimelineId);
+        this.activeTimeline.TimelineChunks = this.activeTimeline.TimelineChunks.OrderBy(chunk => chunk.Article.Date).ToList();
+
         StateHasChanged();
     }
 }
