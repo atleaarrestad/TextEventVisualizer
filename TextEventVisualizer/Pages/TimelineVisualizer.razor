@@ -4,10 +4,8 @@
 @inject ITimelineService timelineService
 
 <PageTitle>Timeline Visualizer</PageTitle>
-
-<h1>Timeline Visualizer</h1>
-
-<div class="timeline">
+<div class="info">
+    <h1>Timeline Visualizer</h1>
     <div class="timeline-header">
         <div class="select-container">
             <select @bind="selectedTimelineId">
@@ -23,9 +21,12 @@
             <span>Created: @activeTimeline.CreationDate.ToLocalTime()</span>
         }
     </div>
+</div>
+
+<div class="timeline">
+    
     @if (activeTimeline != null)
     {
-        <hr />
         <div class="timeline-flex-container">
             @foreach (var timelineChunk in activeTimeline.TimelineChunks)
             {
@@ -34,8 +35,8 @@
                         <div class="article-headline">@timelineChunk.Article.Headline</div>
                         <a class="article-source" href="@timelineChunk.Article.WebUrl">(Source)</a>
                         <div class="article-publish-date">@timelineChunk.Article.Date.ToLocalTime().ToString("dd MMMM yyyy HH:mm")</div>
+                        <hr />
                     </div>
-                    <hr />
                     <div class="timeline-event-container">
                         @foreach (var chunkEvent in timelineChunk.Events)
                         {

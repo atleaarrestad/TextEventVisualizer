@@ -66,6 +66,6 @@ main {
 
 article {
     display: grid;
-    grid-template-rows: auto 1fr; /* Adjust based on your layout */
+    grid-template-rows: auto 1fr;
     height: 100%;
 }

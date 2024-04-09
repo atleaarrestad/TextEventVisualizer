@@ -1,12 +1,16 @@
-﻿h1 {
-    text-align: center;
+﻿.info {
+    height: 15vh;
 }
+    .info h1 {
+        text-align: center;
+        padding-bottom: 8px;
+    }
 
 .timeline {
     max-width: calc(100vw - 300px);
-    max-height: calc(100vh - 200px);
+    height: 85vh;
     margin: auto;
-    padding: 20px;
+    padding-bottom: 16px;
 }
 
 .timeline-header {
@@ -53,11 +57,13 @@ hr {
     display: flex;
     flex-wrap: nowrap;
     gap: 20px;
-
-    overflow-x: auto;
+    height: 100%;
+    overflow: auto;
 }
 
 .timeline-chunk {
+    display: flex;
+    flex-direction: column;
     flex: 0 1 300px;
     background-color: #f9f9f9;
     border: 1px solid #ddd;
@@ -88,10 +94,11 @@ hr {
 }
 
 .timeline-event-container {
+    flex-grow: 1;
     scrollbar-width: thin;
     scrollbar-color: rgba(0,0,0,0.2) transparent;
     overflow-y: auto;
-    max-height: 500px;
+    height:500px;
 }
     /* For Chrome, Safari, and Edge */
     .timeline-event-container::-webkit-scrollbar {
