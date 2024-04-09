@@ -3,6 +3,8 @@
 @using Models.Request
 @using Models
 @inject ITimelineService timelineService
+@inject NavigationManager NavigationManager
+
 
 <PageTitle>Timeline Creator</PageTitle>
 
@@ -102,8 +104,13 @@
 
     private async void CreateTimeline()
     {
+        this.RedirectToTimelineViewerPage(true);
         var timeline = await this.timelineService.GenerateTimeline(this.timelineRequest);
         await timelineService.AddTimeline(timeline);
 
+    }
+    void RedirectToTimelineViewerPage(bool isShowTimelineLogsMode)
+    {
+        NavigationManager.NavigateTo($"/timelinevisualizer/{isShowTimelineLogsMode}");
     }
 }

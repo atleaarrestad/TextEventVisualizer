@@ -129,3 +129,73 @@ hr {
     .timeline-event div:last-child {
         color: #333;
     }
+
+.status-success {
+    color: forestgreen;
+}
+
+.status-failure {
+    color: red;
+}
+
+.status-pending {
+    color: #FFA500;
+}
+
+.status-circle-green {
+    height: 10px;
+    width: 10px;
+    background-color: forestgreen;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 5px;
+    border: 1px solid black;
+}
+
+.status-circle-red {
+    height: 10px;
+    width: 10px;
+    background-color: red;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 5px;
+}
+
+.status-circle-orange {
+    height: 10px;
+    width: 10px;
+    background-color: #FFA500;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 5px;
+}
+
+.title {
+    font-size: 26px;
+    font-weight: 500;
+    padding-right: 8px;
+}
+
+
+.timeline-logs-container{
+    width: 30vw;
+    height: 75vh;
+    justify-self: center;
+    overflow: auto;
+    margin: auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border: black solid 1px;
+}
+
+.log-title_container {
+    justify-self: center;
+    text-align: center;
+    padding-bottom: 16px;
+}
+
+.log-messages-container {
+
+}

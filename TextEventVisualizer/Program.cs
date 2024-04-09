@@ -31,6 +31,7 @@ builder.Services.AddScoped<IArticleService, ArticleService>();
 builder.Services.AddScoped<IJsonService, JsonService>();
 builder.Services.AddScoped<IEmbeddingService, EmbeddingService>();
 builder.Services.AddScoped<ITimelineService, TimelineService>();
+builder.Services.AddSingleton<ITimelineCreationTrackerService, TimelineCreationTrackerService>();
 
 var app = builder.Build();
 

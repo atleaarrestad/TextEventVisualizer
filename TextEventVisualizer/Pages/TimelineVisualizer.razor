@@ -1,7 +1,9 @@
-﻿@page "/timelinevisualizer"
+﻿@page "/timelinevisualizer/{isShowTimelineLogsMode:bool}"
+@using System.Collections.ObjectModel
 @using TextEventVisualizer.Services
 @using TextEventVisualizer.Models
 @inject ITimelineService timelineService
+@inject ITimelineCreationTrackerService TimelineCreationTrackerService
 
 <PageTitle>Timeline Visualizer</PageTitle>
 <div class="info">
@@ -22,41 +24,94 @@
         }
     </div>
 </div>
+@if (!this.isShowTimelineLogsMode)
+{
+    <div class="timeline">
 
-<div class="timeline">
-    
-    @if (activeTimeline != null)
-    {
-        <div class="timeline-flex-container">
-            @foreach (var timelineChunk in activeTimeline.TimelineChunks)
-            {
-                <div class="timeline-chunk">
-                    <div class="chunk-header">
-                        <div class="article-headline">@timelineChunk.Article.Headline</div>
-                        <a class="article-source" href="@timelineChunk.Article.WebUrl">(Source)</a>
-                        <div class="article-publish-date">@timelineChunk.Article.Date.ToLocalTime().ToString("dd MMMM yyyy HH:mm")</div>
-                        <hr />
+        @if (activeTimeline != null)
+        {
+            <div class="timeline-flex-container">
+                @foreach (var timelineChunk in activeTimeline.TimelineChunks)
+                {
+                    <div class="timeline-chunk">
+                        <div class="chunk-header">
+                            <div class="article-headline">@timelineChunk.Article.Headline</div>
+                            <a class="article-source" href="@timelineChunk.Article.WebUrl">(Source)</a>
+                            <div class="article-publish-date">@timelineChunk.Article.Date.ToLocalTime().ToString("dd MMMM yyyy HH:mm")</div>
+                            <hr />
+                        </div>
+                        <div class="timeline-event-container">
+                            @foreach (var chunkEvent in timelineChunk.Events)
+                            {
+                                <div class="timeline-event">
+                                    <div>@chunkEvent.Timestamp</div>
+                                    <div>@chunkEvent.Content</div>
+                                </div>
+                            }
+                        </div>
                     </div>
-                    <div class="timeline-event-container">
-                        @foreach (var chunkEvent in timelineChunk.Events)
-                        {
-                            <div class="timeline-event">
-                                <div>@chunkEvent.Timestamp</div>
-                                <div>@chunkEvent.Content</div>
-                            </div>
-                        }
-                    </div>
-                </div>
+                }
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="timeline-logs-container">
+        <div class="log-title_container">
+            <h1 class="title">@this.TimelineGenerationName</h1>
+            @{
+                switch (this.TimelineGenerationStatus)
+                {
+                    case Status.NotStarted:
+                        <span class="status-circle-red"></span>
+                        <span class="status-failure"> Not started</span>
+                        break;
+                    case Status.InProgess:
+                        <span class="status-circle-orange"></span>
+                        <span class="status-pending"> In progress</span>
+                        break;
+                    case Status.Failed:
+                        <span class="status-circle-red"></span>
+                        <span class="status-failure"> Failed</span>
+                        break;
+                    case Status.Completed:
+                        <span class="status-circle-green"></span>
+                        <span class="status-success"> Completed</span>
+                        break;
+                    default:
+                        <span class="status-circle-red"> Status unknown</span>
+                        break;
+                }
             }
         </div>
-    }
-</div>
+        <div class="log-messages-container">
+            @if (this.TimelineGenerationMessages != null)
+            {
+                @foreach (var message in this.TimelineGenerationMessages)
+                {
+                    <div>@message</div>
+                }
+            }
+        </div>
+    </div>
+}
+
 
 
 
 @code{
+    [Parameter]
+    public bool isShowTimelineLogsMode { get; set; } = false;
+
     private Timeline? activeTimeline = null;
     private int _selectedTimelineId = 0;
+    private OperationTracker? operationTracker = null;
+
+    private string TimelineGenerationName = string.Empty;
+    private ReadOnlyCollection<string>? TimelineGenerationMessages = null;
+    private Status TimelineGenerationStatus = Status.NotStarted;
+
     public int selectedTimelineId {
         get => _selectedTimelineId;
         set
@@ -64,6 +119,7 @@
             if (_selectedTimelineId != value && value != 0)
             {
                 _selectedTimelineId = value;
+                this.isShowTimelineLogsMode = false;
                 OnSelectTimeline();
             }
         }
@@ -74,6 +130,8 @@
     protected async override void OnInitialized()
     {
         timelineBriefInfos = await timelineService.GetAllTimelinesBriefInfoAsync();
+        this.TimelineCreationTrackerService.OnChanged += TimelineGenerationStatusHasChangedHandler;
+        TimelineGenerationStatusHasChangedHandler();
         StateHasChanged();
     }
 
@@ -81,8 +139,18 @@
     {
         this.activeTimeline = await timelineService.GetTimeline(this.selectedTimelineId);
         this.activeTimeline.TimelineChunks = this.activeTimeline.TimelineChunks.OrderBy(chunk => chunk.Article.Date).ToList();
-
         StateHasChanged();
+    }
+
+    public void TimelineGenerationStatusHasChangedHandler()
+    {
+        InvokeAsync(() =>
+        {
+            this.TimelineGenerationName = TimelineCreationTrackerService.Name;
+            this.TimelineGenerationMessages = TimelineCreationTrackerService.GetMessages();
+            this.TimelineGenerationStatus = TimelineCreationTrackerService.Status;
+            StateHasChanged();
+        });
     }
 
 }
