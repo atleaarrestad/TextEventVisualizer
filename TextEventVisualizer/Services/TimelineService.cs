@@ -90,7 +90,17 @@ namespace TextEventVisualizer.Services
             foreach (var (embedding, index) in embeddingQueryResult.Select((value, index) => (value, index)))
             {
                 AddProgressMessage($"Embedding {index + 1}/{embeddingQueryResult.Count} Extracting {timelineRequest.DesiredEventCountForEachArticle} events");
-                var events = await largeLanguageModelService.ExtractEventsFromText(embedding.content, timelineRequest.DesiredEventCountForEachArticle);
+
+                List<Event> events;
+                try
+                {
+                    events = await largeLanguageModelService.ExtractEventsFromText(embedding.content, timelineRequest.DesiredEventCountForEachArticle);
+                }
+                catch
+                {
+                    events = [];
+                }
+
                 if (events.Count > 0)
                 {
                     timeline.TimelineChunks.Add(new TimelineChunk()

@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Polly;
 using System.Text;
 using TextEventVisualizer.Extentions;
 using TextEventVisualizer.Models;
@@ -58,26 +59,36 @@ namespace TextEventVisualizer.Services
 
             The response should be a JSON array, beginning and ending with the array brackets, and containing no additional text outside of this format.";
 
-            var result = await Ask(prompt);
+            var policy = Policy
+                .Handle<Exception>(ex => IsTransientException(ex))
+                .WaitAndRetryAsync(5, retryAttempt => TimeSpan.FromMilliseconds(250));
 
-            int startIndex = result.IndexOf('[');
-            int endIndex = result.LastIndexOf(']');
-
-            if (startIndex == -1 || endIndex == -1 || endIndex < startIndex)
+            return await policy.ExecuteAsync(async () =>
             {
-                throw new InvalidOperationException("Valid JSON not found in the response string.");
-            }
+                var result = await Ask(prompt);
 
-            var json = result.Substring(startIndex, endIndex - startIndex + 1);
-            json = json.RemoveInvalidCharactersForJSON();
-            var events = JsonConvert.DeserializeObject<List<Event>>(json);
+                int startIndex = result.IndexOf('[');
+                int endIndex = result.LastIndexOf(']');
 
-            if (events.Count > desiredEventCount)
-            {
-                events.RemoveRange(3, events.Count - 3);
-            }
-            return events;
+                if (startIndex == -1 || endIndex == -1 || endIndex < startIndex)
+                {
+                    throw new InvalidOperationException("Valid JSON not found in the response string.");
+                }
 
+                var json = result.Substring(startIndex, endIndex - startIndex + 1);
+                json = json.RemoveInvalidCharactersForJSON();
+                var events = JsonConvert.DeserializeObject<List<Event>>(json);
+
+                if (events.Count > desiredEventCount)
+                {
+                    events.RemoveRange(3, events.Count - 3);
+                }
+                return events;
+            });
+        }
+        private static bool IsTransientException(Exception ex)
+        {
+            return ex is InvalidOperationException;
         }
     }
 }
