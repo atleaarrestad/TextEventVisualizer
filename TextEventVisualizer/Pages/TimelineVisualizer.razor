@@ -3,7 +3,6 @@
 @using TextEventVisualizer.Services
 @using TextEventVisualizer.Models
 @inject ITimelineService timelineService
-@inject ITimelineCreationTrackerService TimelineCreationTrackerService
 
 <PageTitle>Timeline Visualizer</PageTitle>
 <div class="info">
@@ -129,8 +128,13 @@ else
     protected async override void OnInitialized()
     {
         timelineBriefInfos = await timelineService.GetAllTimelinesBriefInfoAsync();
-        this.TimelineCreationTrackerService.OnChanged += TimelineGenerationStatusHasChangedHandler;
-        TimelineGenerationStatusHasChangedHandler();
+        this.timelineService.OnTimelineGenerationStarted += OnTimelineGenerationStartedHandler;
+        this.timelineService.OnTimelineGenerationMessagesUpdated += OnTimelineGenerationMessagesUpdatedHandler;
+        this.timelineService.OnTimelineGenerationCompleted += OnTimelineGenerationCompletedHandler;
+
+        this.TimelineGenerationName = timelineService.TimelineGenerationName;
+        this.TimelineGenerationMessages = timelineService.GetTimelineGenerationMessages();
+        this.TimelineGenerationStatus = timelineService.TimelineGenerationStatus;
         StateHasChanged();
     }
 
@@ -141,15 +145,32 @@ else
         StateHasChanged();
     }
 
-    public void TimelineGenerationStatusHasChangedHandler()
+    public void OnTimelineGenerationStartedHandler()
     {
         InvokeAsync(() =>
         {
-            this.TimelineGenerationName = TimelineCreationTrackerService.Name;
-            this.TimelineGenerationMessages = TimelineCreationTrackerService.GetMessages();
-            this.TimelineGenerationStatus = TimelineCreationTrackerService.Status;
+            this.TimelineGenerationName = timelineService.TimelineGenerationName;
+            this.TimelineGenerationMessages = timelineService.GetTimelineGenerationMessages();
+            this.TimelineGenerationStatus = timelineService.TimelineGenerationStatus;
             StateHasChanged();
         });
+    }
+
+    public void OnTimelineGenerationMessagesUpdatedHandler()
+    {
+        InvokeAsync(() =>
+        {
+            this.TimelineGenerationMessages = timelineService.GetTimelineGenerationMessages();
+            StateHasChanged();
+        });
+    }
+
+    public async void OnTimelineGenerationCompletedHandler()
+    {
+        this.TimelineGenerationStatus = timelineService.TimelineGenerationStatus;
+        await Task.Delay(1000); // wait for timeline to be stored in database before getting the updated dropdown list
+        timelineBriefInfos = await timelineService.GetAllTimelinesBriefInfoAsync();
+        StateHasChanged();
     }
 
 }

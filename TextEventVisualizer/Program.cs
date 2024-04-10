@@ -30,8 +30,7 @@ builder.Services.AddTransient<IHuggingFaceService, HuggingFaceService>();
 builder.Services.AddScoped<IArticleService, ArticleService>();
 builder.Services.AddScoped<IJsonService, JsonService>();
 builder.Services.AddScoped<IEmbeddingService, EmbeddingService>();
-builder.Services.AddScoped<ITimelineService, TimelineService>();
-builder.Services.AddSingleton<ITimelineCreationTrackerService, TimelineCreationTrackerService>();
+builder.Services.AddSingleton<ITimelineService, TimelineService>();
 
 var app = builder.Build();
 

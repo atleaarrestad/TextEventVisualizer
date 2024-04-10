@@ -1,47 +1,55 @@
 ﻿using TextEventVisualizer.Models.Request;
-using TextEventVisualizer.Services;
 using TextEventVisualizer.Models;
-using System;
 using TextEventVisualizer.Repositories;
 using System.Diagnostics;
+using System.Collections.ObjectModel;
+using TextEventVisualizer.Migrations;
 
 namespace TextEventVisualizer.Services
 {
     public class TimelineService : ITimelineService
     {
-        private readonly IEmbeddingService embeddingService;
-        private readonly ILargeLanguageModelService largeLanguageModelService;
-        private readonly ITimelineRepository timelineRepository;
-        private readonly ITimelineCreationTrackerService timelineCreationTrackerService;
-        public TimelineService(IEmbeddingService embeddingService,
-            ILargeLanguageModelService largeLanguageModelService,
-            ITimelineRepository timelineRepository,
-            ITimelineCreationTrackerService operationTrackerService)
+        // requires serviceprovider to resolve dependencies because this service is a singleton
+        private readonly IServiceProvider serviceProvider;
+
+        // For status updates while creating timeline
+        public event Action OnTimelineGenerationStarted;
+        public event Action OnTimelineGenerationMessagesUpdated;
+        public event Action OnTimelineGenerationCompleted;
+        private Stopwatch _stopwatch = new();
+        private List<string> _timelineGenerationMessages = new();
+        public Status TimelineGenerationStatus { get; set; }
+        public string TimelineGenerationName { get; set; }
+
+        public TimelineService(IServiceProvider serviceProvider)
         {
-            this.embeddingService = embeddingService;
-            this.largeLanguageModelService = largeLanguageModelService;
-            this.timelineRepository = timelineRepository;
-            this.timelineCreationTrackerService = operationTrackerService;
+            this.serviceProvider = serviceProvider;
         }
 
-        public Task<int> AddTimeline(Timeline timeline)
+        public async Task<int> AddTimeline(Timeline timeline)
         {
-            timeline.CreationDate = DateTime.Now.ToUniversalTime();
-            return timelineRepository.AddTimeline(timeline);
+            using var scope = serviceProvider.CreateScope();
+            var timelineRepository = scope.ServiceProvider.GetRequiredService<ITimelineRepository>();
+            timeline.CreationDate = DateTime.UtcNow;
+            return await timelineRepository.AddTimeline(timeline);
         }
 
-        public Task<Timeline?> GetTimeline(int Id)
+        public async Task<Timeline?> GetTimeline(int Id)
         {
-            return timelineRepository.GetTimeline(Id);
+            using var scope = serviceProvider.CreateScope();
+            var timelineRepository = scope.ServiceProvider.GetRequiredService<ITimelineRepository>();
+            return await timelineRepository.GetTimeline(Id);
         }
 
-        public async Task<Timeline> GenerateTimeline(TimelineRequest timelineRequest)
+        public async Task<Timeline?> GenerateTimeline(TimelineRequest timelineRequest)
         {
-            timelineCreationTrackerService.ClearMessages();
-            timelineCreationTrackerService.StartTracking();
-            timelineCreationTrackerService.Name = timelineRequest.Name;
-            timelineCreationTrackerService.AddMessage("Started new timeline generation");
-            timelineCreationTrackerService.Status = Status.InProgess;
+            ClearMessages();
+            _stopwatch.Reset();
+            _stopwatch.Start();
+            TimelineGenerationName = timelineRequest.Name;
+            TimelineGenerationStatus = Status.InProgess;
+            AddProgressMessage("Started new timeline generation");
+            OnTimelineGenerationStarted?.Invoke();
 
             var queryRequest = new EmbeddingQueryRequest()
             {
@@ -53,20 +61,27 @@ namespace TextEventVisualizer.Services
                 Prompts = timelineRequest.ArticleClusterSearch
             };
 
-            timelineCreationTrackerService.AddMessage("Querying for embeddings");
+            using var scope = serviceProvider.CreateScope();
+            var timelineRepository = scope.ServiceProvider.GetRequiredService<ITimelineRepository>();
+            var embeddingService = scope.ServiceProvider.GetRequiredService<IEmbeddingService>();
+            var largeLanguageModelService = scope.ServiceProvider.GetRequiredService<ILargeLanguageModelService>();
 
+            AddProgressMessage("Querying for embeddings");
             var embeddingQueryResult = await embeddingService.QueryDataAsync(queryRequest);
+
             if (embeddingQueryResult.Count > 0)
             {
-                timelineCreationTrackerService.AddMessage("Successfully queried vector database");
+                AddProgressMessage("Successfully queried vector database");
             }
             else
             {
-                timelineCreationTrackerService.AddMessage("No results from vector database query");
-                timelineCreationTrackerService.Status = Status.Failed;
-                timelineCreationTrackerService.EndTracking();
+                AddProgressMessage("No results from vector database query");
+                AddProgressMessage("Not able to create timeline");
+                TimelineGenerationStatus = Status.Failed;
+                _stopwatch.Stop();
+                OnTimelineGenerationCompleted?.Invoke();
+                return null;
             }
-
 
             var timeline = new Timeline();
             timeline.TimelineRequest = timelineRequest;
@@ -74,7 +89,7 @@ namespace TextEventVisualizer.Services
 
             foreach (var (embedding, index) in embeddingQueryResult.Select((value, index) => (value, index)))
             {
-                timelineCreationTrackerService.AddMessage($"Embedding {index + 1}/{embeddingQueryResult.Count} Extracting {timelineRequest.DesiredEventCountForEachArticle} events");
+                AddProgressMessage($"Embedding {index + 1}/{embeddingQueryResult.Count} Extracting {timelineRequest.DesiredEventCountForEachArticle} events");
                 var events = await largeLanguageModelService.ExtractEventsFromText(embedding.content, timelineRequest.DesiredEventCountForEachArticle);
                 if (events.Count > 0)
                 {
@@ -83,22 +98,42 @@ namespace TextEventVisualizer.Services
                         Events = events,
                         ArticleId = embedding.originalId,
                     });
-                    timelineCreationTrackerService.AddMessage($"Embedding {index + 1}/{embeddingQueryResult.Count} Found {events.Count} events");
+                    AddProgressMessage($"Embedding {index + 1}/{embeddingQueryResult.Count} Found {events.Count} events");
                 }
                 else
                 {
-                    timelineCreationTrackerService.AddMessage($"No valid events from embedding {index + 1}/{embeddingQueryResult.Count}. Skipping this one");
+                    AddProgressMessage($"No valid events from embedding {index + 1}/{embeddingQueryResult.Count}. Skipping this one");
                 }
             }
-            timelineCreationTrackerService.Status = Status.Completed;
-            timelineCreationTrackerService.AddMessage("Completed");
-            timelineCreationTrackerService.EndTracking();
+            TimelineGenerationStatus = Status.Completed;
+            AddProgressMessage("Completed");
+            _stopwatch.Stop();
+            OnTimelineGenerationCompleted?.Invoke();
             return timeline;
         }
 
-        public Task<List<TimelineBriefInfo>> GetAllTimelinesBriefInfoAsync()
+        public async Task<List<TimelineBriefInfo>> GetAllTimelinesBriefInfoAsync()
         {
-            return timelineRepository.GetAllTimelinesBriefInfoAsync();
+            using var scope = serviceProvider.CreateScope();
+            var timelineRepository = scope.ServiceProvider.GetRequiredService<ITimelineRepository>();
+            return await timelineRepository.GetAllTimelinesBriefInfoAsync();
+        }
+
+        public void AddProgressMessage(string message)
+        {
+            var elapsedTime = _stopwatch.Elapsed;
+            var formattedMessage = $"(Elapsed: {elapsedTime.ToString(@"hh\:mm\:ss")}) {message}";
+            _timelineGenerationMessages.Add(formattedMessage);
+            OnTimelineGenerationMessagesUpdated?.Invoke();
+        }
+        public ReadOnlyCollection<string> GetTimelineGenerationMessages()
+        {
+            return _timelineGenerationMessages.AsReadOnly();
+        }
+        public void ClearMessages()
+        {
+            _timelineGenerationMessages.Clear();
+            OnTimelineGenerationMessagesUpdated?.Invoke();
         }
     }
 }
