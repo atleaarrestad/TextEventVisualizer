@@ -103,6 +103,11 @@ namespace TextEventVisualizer.Services
 
                 if (events.Count > 0)
                 {
+                    if (events.Count > timelineRequest.MaxEventCountForEachArticle)
+                    {
+                        events.RemoveRange(timelineRequest.MaxEventCountForEachArticle, events.Count - timelineRequest.MaxEventCountForEachArticle);
+                    }
+
                     timeline.TimelineChunks.Add(new TimelineChunk()
                     {
                         Events = events,

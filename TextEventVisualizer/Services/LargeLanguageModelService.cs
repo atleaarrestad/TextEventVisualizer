@@ -77,12 +77,8 @@ namespace TextEventVisualizer.Services
 
                 var json = result.Substring(startIndex, endIndex - startIndex + 1);
                 json = json.RemoveInvalidCharactersForJSON();
-                var events = JsonConvert.DeserializeObject<List<Event>>(json);
+                var events = JsonConvert.DeserializeObject<List<Event>>(json) ?? [];
 
-                if (events.Count > desiredEventCount)
-                {
-                    events.RemoveRange(3, events.Count - 3);
-                }
                 return events;
             });
         }
