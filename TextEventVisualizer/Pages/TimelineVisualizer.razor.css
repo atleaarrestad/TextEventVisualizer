@@ -1,5 +1,5 @@
 ﻿.info {
-    height: 15vh;
+    height: 145px;
 }
     .info h1 {
         text-align: center;
@@ -8,7 +8,8 @@
 
 .timeline {
     max-width: calc(100vw - 300px);
-    height: 85vh;
+    max-height: calc(100vh - 145px);
+    height: 100%;
     margin: auto;
     padding-bottom: 16px;
 }
