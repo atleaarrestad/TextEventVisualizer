@@ -30,8 +30,14 @@
         @if (activeTimeline != null)
         {
             <div class="timeline-flex-container">
-                @foreach (var timelineChunk in activeTimeline.TimelineChunks)
+                @foreach (var (timelineChunk, index) in activeTimeline.TimelineChunks.Select((chunk, index) => (chunk, index)))
                 {
+                    @if(index > 0)
+                    {
+                        <div class="timeline-arrow">
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </div>
+                    }
                     <div class="timeline-chunk">
                         <div class="chunk-header">
                             <div class="article-headline">@timelineChunk.Article.Headline</div>
