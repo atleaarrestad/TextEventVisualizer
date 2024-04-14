@@ -6,17 +6,10 @@
         padding-bottom: 8px;
     }
 
-.timeline {
-    max-width: calc(100vw - 300px);
-    height: 100%;
-    margin: auto;
-}
-
 .timeline-header {
     text-align: center;
     margin-bottom: 30px;
 }
-
     .timeline-header h4 {
         margin: 0;
         color: #333;
@@ -46,106 +39,96 @@
         margin-bottom: 10px;
     }
 
-hr {
-    border: 0;
-    height: 1px;
-    background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0));
+
+.timeline{
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) max-content minmax(0, 1fr);
+    grid-auto-rows: max-content;
 }
 
-.timeline-flex-container {
-    display: flex;
-    flex-wrap: nowrap;
-    gap: 20px;
-    height: 100%;
-    overflow: auto;
+.event-track {
+    display: grid;
+    grid-template-columns: subgrid;
+    grid-column: span 3;
+    height: auto;
 }
 
-.timeline-chunk {
-    display: flex;
-    flex-direction: column;
-    flex: 0 1 300px;
-    background-color: #f9f9f9;
-    border: 1px solid #ddd;
+.event-point {
+    width: 1px;
+    border: 1px dashed black;
+    align-content: center;
+    position:relative;
+}
+.event-point::after {
+    content: "";
+    position:absolute;
+    width: 160px;
+    height: 2px;
+    background: black;
+    top: calc(50% - 1px);
+    left:-80px;
+    z-index: 1; 
+}
+    .event-point i {
+        transform: rotateY(0deg) rotate(45deg);
+        font-size: 36px;
+        z-index: 2;
+        position: relative;
+        top:-10px;
+        
+
+    }
+
+.event-date-container{
+    align-self: center;
     border-radius: 4px;
-    overflow: hidden;
-    padding: 15px;
-    min-width: 300px;
-}
-.timeline-arrow {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
+    padding: 8px;
 }
 
-.article-headline {
-    text-align: center;
-    font-weight: bold;
-    margin-bottom: 5px;
-    min-height: 80px;
-}
-.article-source {
-    text-align: center;
+.event-date-container a{
     display: block;
-    color: #707070;
-    margin-bottom: 5px;
-}
-
-.article-publish-date {
     text-align: center;
-    font-size: 0.8em;
-    color: #999;
-    margin-bottom: 15px;
 }
 
-.timeline-event-container {
-    flex-grow: 1;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(0,0,0,0.2) transparent;
-    overflow-y: auto;
-    height:500px;
+.event-content-container {
+    background-color: rgba(200, 200, 200, 0.1);
+
+    max-width: calc(50vw - 200px);
+    align-self: center;
+    border-radius: 16px;
+    width: auto;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    padding: 16px;
 }
-    /* For Chrome, Safari, and Edge */
-    .timeline-event-container::-webkit-scrollbar {
-        width: 5px;
+    .event-content-container .event {
+        flex: 1 1 350px;
+        max-width: 500px;
+        text-align: center;
+    }
+    .event-content-container .event-date{
+        font-size: smaller;
     }
 
-
-.timeline-event {
-    padding: 10px;
-    border-bottom: 1px solid #eee;
-    background-color: #fff;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    border-radius: 4px;
-    margin-bottom: 15px;
+.left-border {
+    border-left: 2px solid black;
+}
+.right-border {
+    border-right: 2px solid black;
 }
 
-    .timeline-event:last-child {
-        border-bottom: none;
-        margin-bottom: 0;
-    }
-
-    .timeline-event div:first-child {
-        color: #999;
-        font-size: 0.9em;
-        margin-bottom: 5px;
-    }
-
-    .timeline-event div:last-child {
-        color: #333;
-    }
-
-.status-success {
-    color: forestgreen;
+.left {
+    justify-self: end;
+    margin-right: 80px;
 }
 
-.status-failure {
-    color: red;
+.right {
+    justify-self: start;
+    margin-left: 80px;
 }
 
-.status-pending {
-    color: #FFA500;
-}
 
 .status-circle-green {
     height: 10px;
@@ -182,7 +165,7 @@ hr {
 }
 
 
-.timeline-logs-container{
+.timeline-logs-container {
     width: 30vw;
     height: 75vh;
     justify-self: center;
@@ -202,5 +185,4 @@ hr {
 }
 
 .log-messages-container {
-
 }

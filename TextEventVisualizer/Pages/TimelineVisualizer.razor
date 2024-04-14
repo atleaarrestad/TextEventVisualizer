@@ -23,44 +23,58 @@
         }
     </div>
 </div>
-@if (!this.isShowTimelineLogsMode)
+
+
+@if (!this.isShowTimelineLogsMode && activeTimeline != null)
 {
     <div class="timeline">
-
-        @if (activeTimeline != null)
+        @foreach (var (timelineChunk, index) in activeTimeline.TimelineChunks.Select((chunk, index) => (chunk, index)))
         {
-            <div class="timeline-flex-container">
-                @foreach (var (timelineChunk, index) in activeTimeline.TimelineChunks.Select((chunk, index) => (chunk, index)))
+            <div class="event-track">
+                @if (index % 2 == 0)
                 {
-                    @if(index > 0)
-                    {
-                        <div class="timeline-arrow">
-                            <i class="fa-solid fa-arrow-right"></i>
-                        </div>
-                    }
-                    <div class="timeline-chunk">
-                        <div class="chunk-header">
-                            <div class="article-headline">@timelineChunk.Article.Headline</div>
-                            <a class="article-source" href="@timelineChunk.Article.WebUrl">(Source)</a>
-                            <div class="article-publish-date">@timelineChunk.Article.Date.ToLocalTime().ToString("dd MMMM yyyy HH:mm")</div>
-                            <hr />
-                        </div>
-                        <div class="timeline-event-container">
-                            @foreach (var chunkEvent in timelineChunk.Events)
-                            {
-                                <div class="timeline-event">
-                                    <div>@chunkEvent.Timestamp</div>
-                                    <div>@chunkEvent.Content</div>
-                                </div>
-                            }
-                        </div>
+                    <div class="event-content-container left right-border">
+                        @foreach (var chunkEvent in timelineChunk.Events)
+                        {
+                            <div class="event">
+                                <div class="event-date">(@chunkEvent.Timestamp)</div>
+                                @chunkEvent.Content
+                            </div>
+                        }
+                    </div>
+                    <div class="event-point">
+                        <i class="fa-solid fa-map-pin"></i>
+                    </div>
+                    <div class="event-date-container right left-border">
+                        <span>@timelineChunk.Article.Date.ToLocalTime().ToString("dd MMMM yyyy HH:mm")</span>
+                        <a href="@timelineChunk.Article.WebUrl">source</a>
+                    </div>
+                }
+                else
+                {
+                    <div class="event-date-container left right-border">
+                        <span>@timelineChunk.Article.Date.ToLocalTime().ToString("dd MMMM yyyy HH:mm")</span>
+                        <a href="@timelineChunk.Article.WebUrl">source</a>
+                    </div>
+                    <div class="event-point">
+                        <i class="fa-solid fa-map-pin"></i>
+                    </div>
+                    <div class="event-content-container right left-border">
+                        @foreach (var chunkEvent in timelineChunk.Events)
+                        {
+                            <div class="event">
+                                <div class="event-date">(@chunkEvent.Timestamp)</div>
+                                @chunkEvent.Content
+                            </div>
+                        }
                     </div>
                 }
             </div>
         }
+        
     </div>
 }
-else
+@if (this.isShowTimelineLogsMode)
 {
     <div class="timeline-logs-container">
         <div class="log-title_container">
