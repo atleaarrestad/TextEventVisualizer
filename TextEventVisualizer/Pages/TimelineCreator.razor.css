@@ -56,7 +56,8 @@ h1 {
     }
 
     .input-solo input[type="text"],
-    .input-solo input[type="number"] {
+    .input-solo input[type="number"],
+    .input-solo select{
         flex: 1;
         padding: 10px;
         border: 1px solid #ccc;

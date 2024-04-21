@@ -80,9 +80,25 @@
                 }
                 else
                 {
-                    <td>Found @summaryCount vectorized summaries</td>
+                    <td>Found @summaryCount vectorized article summaries</td>
                 }
                 <td><button @onclick="() => OnAddAllScrapedArticlesButtonPressed(EmbeddingCategory.Summary)">Vectorize article summary</button></td>
+            </tr>
+            <tr class="@(paragraphCount > 0 ? "success" : "failure")">
+                <td>Vectorized article paragraphs count</td>
+                @if (paragraphCount == -1)
+                {
+                    <td>Error occured when trying to fetch count</td>
+                }
+                else if (paragraphCount == 0)
+                {
+                    <td>Found 0 article paragraphs</td>
+                }
+                else
+                {
+                    <td>Found @summaryCount vectorized articles by paragraphs</td>
+                }
+                <td><button @onclick="() => OnAddAllScrapedArticlesButtonPressed(EmbeddingCategory.Paragraph)">Vectorize article paragraphs</button></td>
             </tr>
         </tbody>
     </table>
@@ -93,6 +109,7 @@
     public bool schemaExist = false;
     public int articleCount = 0;
     public int summaryCount = 0;
+    public int paragraphCount = 0;
     public string progressMessage = "";
     public EmbeddingQueryResponse response;
 
@@ -103,6 +120,7 @@
         schemaExist = await EmbeddingService.SchemaExist();
         articleCount = await EmbeddingService.GetEmbeddingEntriesCountInCategory(EmbeddingCategory.Article);
         summaryCount = await EmbeddingService.GetEmbeddingEntriesCountInCategory(EmbeddingCategory.Summary);
+        paragraphCount = await EmbeddingService.GetEmbeddingEntriesCountInCategory(EmbeddingCategory.Paragraph);
         StateHasChanged();
     }
 
@@ -114,7 +132,14 @@
         var articles = await this.ArticleService.GetArticlesAsync(scraped: true);
         var successCount = 0;
         var failureCount = 0;
-        var categoryText = category == EmbeddingCategory.Article ? "Articles" : "Summaries";
+        var categoryText = category switch
+        {
+            EmbeddingCategory.Article => "Articles",
+            EmbeddingCategory.Summary => "Summaries",
+            EmbeddingCategory.Paragraph => "Paragraphs",
+           _ => "error"
+        };
+
         foreach (var article in articles)
         {
             progressMessage = $"Successfully added {successCount} {categoryText}. A total of {failureCount} failures";
@@ -131,15 +156,37 @@
                 continue;
             }
 
-            var result = await EmbeddingService.InsertDataAsync(article.Content, article.Id, category);
-            if (result)
+
+            if (category == EmbeddingCategory.Paragraph)
             {
-                successCount++;
+                var paragraphs = article.Content.Split("\n", StringSplitOptions.RemoveEmptyEntries);
+                foreach (var paragraph in paragraphs)
+                {
+                    var result = await EmbeddingService.InsertDataAsync(paragraph, article.Id, category);
+                    if (result)
+                    {
+                        successCount++;
+                    }
+                    else
+                    {
+                        failureCount++;
+                    }
+                }
             }
             else
             {
-                failureCount++;
+                var result = await EmbeddingService.InsertDataAsync(article.Content, article.Id, category);
+                if (result)
+                {
+                    successCount++;
+                }
+                else
+                {
+                    failureCount++;
+                }
             }
+
+
         }
         progressMessage = $"Finished! added {successCount} {categoryText}. A total of {failureCount} failures";
         StateHasChanged();

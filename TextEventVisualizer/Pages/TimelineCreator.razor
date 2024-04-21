@@ -2,24 +2,43 @@
 @using Services
 @using Models.Request
 @using Models
+@using Components
 @inject ITimelineService timelineService
 @inject NavigationManager NavigationManager
 
 
 <PageTitle>Timeline Creator</PageTitle>
 
-<h1>Event Timeline Creator</h1>
+<span></span>
 
 <div class="settings-form">
     <div class="section-header">
         <div class="section-title">Article Clustering</div>
         <hr />
     </div>
+
+    <div class="input-solo">
+        <div class="label-with-info">
+            <label for="category">Category:</label>
+            <div>
+                <i class="fa fa-asterisk" aria-hidden="true" title="Required"></i>
+                <i class="fas fa-info-circle" title="Embedding category"></i>
+            </div>
+        </div>
+        <select @onchange="OnCategoryChanged">
+            <option value="1">Paragraph</option>
+            <option value="0">Article</option>
+            <option value="2">Summarized article</option>
+        </select>
+    </div>
+
     <div class="input-pair">
         <div class="label-with-info">
             <label for="search-term">Search Term</label>
-            <i class="fa fa-asterisk" aria-hidden="true" title="Required"></i>
-            <i class="fas fa-info-circle" title="Text field -> Term or concept to search for, seperate terms by comma.&#013;Number field -> The maximum allowed distance an article vector can have from this search. a good match is usually between 0.3 and 0.6"></i>
+            <div>
+                <i class="fa fa-asterisk" aria-hidden="true" title="Required"></i>
+                <i class="fas fa-info-circle" title="Text field -> Term or concept to search for, seperate terms by comma.&#013;Number field -> The maximum allowed distance an article vector can have from this search. a good match is usually between 0.3 and 0.6"></i>
+            </div>
         </div>
         <input type="text" id="search-term" @bind="timelineRequest.ArticleClusterSearch" placeholder="corona virus, covid19" />
         <input type="number" @bind="timelineRequest.MaxArticleClusterSearchDistance" step="0.05" min="0" max="2" />
@@ -85,24 +104,16 @@
         <input type="number" id="max-events" @bind="timelineRequest.MaxEventCountForEachArticle" step="1" min="1" max="15" />
     </div>
     
-
-    <button class="btn-submit" @onclick="CreateTimeline">Create Timeline</button>
+    <button class="btn-submit" @onclick="OpenModal">Create Timeline</button>
 </div>
+<Modal IsOpen="isModalOpen" Close="CloseModal" OnConfirm="Confirm" Title="Timeline name" userInput="Example timeline" />
 
 @code {
-    private string ArticleClusterSearch = "covid19, corona virus";
-    private float MaxArticleClusterSearchDistance = 1.0f;
-    private string ArticleClusterSearchPositiveBias = "Pandemic";
-    private float ArticleClusterSearchPositiveBiasWeight = .5f;
-    private string ArticleClusterSearchNegativeBias = "Politics";
-    private float ArticleClusterSearchNegativeBiasWeight = .5f;
-    private int MaxEventCountForEachArticle = 3;
-    private int DesiredEventCountForEachArticle = 3;
-    private int MaxArticleCount = 20;
-    private float MaxDistanceDeltaForArticles = .3f;
-    private TimelineRequest timelineRequest = new();
 
-    private async void CreateTimeline()
+    private bool isModalOpen = false;
+    private TimelineRequest timelineRequest = new() {Category = EmbeddingCategory.Paragraph};
+
+    private async Task CreateTimeline()
     {
         this.RedirectToTimelineViewerPage(true);
         var timeline = await this.timelineService.GenerateTimeline(this.timelineRequest);
@@ -111,10 +122,37 @@
         {
             await timelineService.AddTimeline(timeline);
         }
-
     }
     void RedirectToTimelineViewerPage(bool isShowTimelineLogsMode)
     {
         NavigationManager.NavigateTo($"/timelinevisualizer/{isShowTimelineLogsMode}");
     }
+
+    private void OnCategoryChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int value))
+        {
+            this.timelineRequest.Category = (EmbeddingCategory)value;
+        }
+    }
+
+
+    private void OpenModal()
+    {
+        isModalOpen = true;
+    }
+
+    private void CloseModal()
+    {
+        isModalOpen = false;
+    }
+
+    private async Task Confirm(string inputText)
+    {
+        this.timelineRequest.Name = inputText;
+        CloseModal();
+        await CreateTimeline();
+    }
+
+
 }
