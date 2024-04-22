@@ -35,6 +35,8 @@ Follow these steps to set up the TextEventVisualizer environment on your local m
      7. Check if Docker is using WSL 2. Go to Docker -> Settings -> Resources. Ensure the WSL 2 backend is enabled.
      8. Exit the Ubuntu terminal.
      9. Run the `start_with_GPU` file in the root project folder.
+     10. After all containers are up and running. Go into the ollama container.
+     11. Go to "Exec" and run `ollama pull llama2`
 
 
 ---
