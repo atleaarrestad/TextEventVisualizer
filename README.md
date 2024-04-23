@@ -40,7 +40,8 @@ Follow these steps to set up the TextEventVisualizer environment on your local m
      9. Run the `start_with_GPU` file in the root project folder.
      10. After all containers are up and running. Go into the ollama container.
      11. Go to "Exec" and run `ollama pull llama2`.
-     12. Subsequent startups after doing this once only requires you to run the `start_with_GPU` file in the root project folder. 
+   
+   - Subsequent startups after doing this once only requires you to run the `start_with_GPU` file in the root project folder. 
 
 4. **Start the aplication**
    - Run the application from your preferred IDE.
