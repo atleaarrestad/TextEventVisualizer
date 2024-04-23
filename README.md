@@ -1,6 +1,15 @@
 # TextEventVisualizer
 
-TextEventVisualizer is a tool designed to process news articles and produce chronological timelines for important events.
+TextEventVisualizer is a tool designed to process news articles and produce chronological timelines for important events. 
+
+The ever-growing volume of text data, particularly news articles, present both an
+opportunity and a challenge. While it provides access to a lot of information, navigating
+through it and extracting important facts can be overwhelming. This tool aims to
+address this challenge by automatically recognizing and organizing
+important events from large text corpora, and present them on a user-friendly timeline.
+
+The tool has been developed using news articles from 2020 in the category world news. The articles have been collected from huffpost.com.
+
 
 ---
 
