@@ -28,15 +28,21 @@ Follow these steps to set up the TextEventVisualizer environment on your local m
      - Refer to [Nvidia WSL2](https://docs.nvidia.com/cuda/wsl-user-guide/index.html) for limitations and troubleshooting.
      1. Run `wsl --install` in a terminal.
      2. The terminal should now be in Ubuntu. If not, type `wsl -d Ubuntu`.
-     3. Run `sudo apt-get update` to update your package lists.
-     4. Run `sudo apt-get install -y nvidia-container-toolkit` to install the NVIDIA container toolkit.
-     5. ~~Run `sudo apt install -y nvidia-driver-510`~~ (replace `510` with the latest or required version for your system). This step is probably not required according to [Nvidia WSL2](https://docs.nvidia.com/cuda/wsl-user-guide/index.html).
+     3. Run `curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg \
+  && curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
+    sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
+    sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list` to configure the production repository.
+     4. Run `sudo apt-get update` to update your package lists.
+     5. Run `sudo apt-get install -y nvidia-container-toolkit` to install the NVIDIA container toolkit.
      6. Now, you should be able to run `nvidia-smi` and get information about your GPU, indicating a successful setup.
      7. Check if Docker is using WSL 2. Go to Docker -> Settings -> Resources. Ensure the WSL 2 backend is enabled.
      8. Exit the Ubuntu terminal.
      9. Run the `start_with_GPU` file in the root project folder.
      10. After all containers are up and running. Go into the ollama container.
-     11. Go to "Exec" and run `ollama pull llama2`
+     11. Go to "Exec" and run `ollama pull llama2`.
+     12. Subsequent startups after doing this once only requires you to run the `start_with_GPU` file in the root project folder. 
 
+4. **Start the aplication**
+   - Run the application from your preferred IDE.
 
 ---
