@@ -37,10 +37,10 @@ Follow these steps to set up the TextEventVisualizer environment on your local m
      - Refer to [Nvidia WSL2](https://docs.nvidia.com/cuda/wsl-user-guide/index.html) for limitations and troubleshooting.
      1. Run `wsl --install` in a terminal.
      2. The terminal should now be in Ubuntu. If not, type `wsl -d Ubuntu`.
-     3. Run `curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg \
+     3. Skip to step D and E. If you get an error or it is unsuccessful run `curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg \
   && curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
     sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
-    sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list` to configure the production repository.
+    sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list` to configure the production repository and try step D and E again.
      4. Run `sudo apt-get update` to update your package lists.
      5. Run `sudo apt-get install -y nvidia-container-toolkit` to install the NVIDIA container toolkit.
      6. Now, you should be able to run `nvidia-smi` and get information about your GPU, indicating a successful setup.
