@@ -29,7 +29,7 @@ services:
     volumes:
       - ollama:/root/.ollama
     environment:
-      ENABLE_CUDA: '1' # Assuming this environment variable enables GPU usage for Ollama
+      ENABLE_CUDA: '1'
     deploy:
       resources:
         reservations:
