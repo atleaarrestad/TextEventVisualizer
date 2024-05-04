@@ -11,6 +11,8 @@ important events from large text corpora, and present them on a user-friendly ti
 The tool has been developed using news articles from 2020 in the category world news. The articles have been collected from huffpost.com.
 
 
+Link to website running the tool: https://72b0-2a01-799-5a-8f00-4485-936a-7166-b698.ngrok-free.app/
+
 ---
 
 ## Developer Setup
