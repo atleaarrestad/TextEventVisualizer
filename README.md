@@ -12,6 +12,7 @@ The tool has been developed using news articles from 2020 in the category world 
 
 
 Link to website running the tool: https://72b0-2a01-799-5a-8f00-4485-936a-7166-b698.ngrok-free.app/
+
 Link to a video recording of the tool in case the website is no longer up and running: https://youtu.be/bSFKLMohr5Y
 
 ---
