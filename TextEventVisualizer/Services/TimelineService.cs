@@ -7,6 +7,9 @@ using TextEventVisualizer.Migrations;
 
 namespace TextEventVisualizer.Services
 {
+    /// <summary>
+    /// Service for managing and generating timelines based on text data analysis.
+    /// </summary>
     public class TimelineService : ITimelineService
     {
         // requires serviceprovider to resolve dependencies because this service is a singleton
@@ -21,11 +24,20 @@ namespace TextEventVisualizer.Services
         public Status TimelineGenerationStatus { get; set; }
         public string TimelineGenerationName { get; set; }
 
+        /// <summary>
+        /// Initializes a new instance of the TimelineService with dependency injection.
+        /// </summary>
+        /// <param name="serviceProvider">A service provider for resolving dependencies.</param>
         public TimelineService(IServiceProvider serviceProvider)
         {
             this.serviceProvider = serviceProvider;
         }
 
+        /// <summary>
+        /// Adds a new timeline to the database asynchronously.
+        /// </summary>
+        /// <param name="timeline">The timeline to add.</param>
+        /// <returns>The ID of the added timeline.</returns>
         public async Task<int> AddTimeline(Timeline timeline)
         {
             using var scope = serviceProvider.CreateScope();
@@ -34,6 +46,11 @@ namespace TextEventVisualizer.Services
             return await timelineRepository.AddTimeline(timeline);
         }
 
+        /// <summary>
+        /// Retrieves a timeline by its ID asynchronously.
+        /// </summary>
+        /// <param name="Id">The ID of the timeline to retrieve.</param>
+        /// <returns>The requested timeline if found, otherwise null.</returns>
         public async Task<Timeline?> GetTimeline(int Id)
         {
             using var scope = serviceProvider.CreateScope();
@@ -41,6 +58,11 @@ namespace TextEventVisualizer.Services
             return await timelineRepository.GetTimeline(Id);
         }
 
+        /// <summary>
+        /// Generates a timeline based on a specified request asynchronously.
+        /// </summary>
+        /// <param name="timelineRequest">The parameters defining how the timeline should be generated.</param>
+        /// <returns>The generated timeline if successful, otherwise null.</returns>
         public async Task<Timeline?> GenerateTimeline(TimelineRequest timelineRequest)
         {
             ClearMessages();
@@ -127,6 +149,10 @@ namespace TextEventVisualizer.Services
             return timeline;
         }
 
+        /// <summary>
+        /// Retrieves brief information for all timelines stored in the database asynchronously.
+        /// </summary>
+        /// <returns>A list of TimelineBriefInfo objects containing brief details of each timeline.</returns>
         public async Task<List<TimelineBriefInfo>> GetAllTimelinesBriefInfoAsync()
         {
             using var scope = serviceProvider.CreateScope();
@@ -134,6 +160,10 @@ namespace TextEventVisualizer.Services
             return await timelineRepository.GetAllTimelinesBriefInfoAsync();
         }
 
+        /// <summary>
+        /// Adds a progress message to the timeline generation log.
+        /// </summary>
+        /// <param name="message">The message to add to the log.</param>
         public void AddProgressMessage(string message)
         {
             var elapsedTime = _stopwatch.Elapsed;
@@ -141,10 +171,19 @@ namespace TextEventVisualizer.Services
             _timelineGenerationMessages.Add(formattedMessage);
             OnTimelineGenerationMessagesUpdated?.Invoke();
         }
+
+        /// <summary>
+        /// Retrieves all logged messages for the timeline generation process as a read-only collection.
+        /// </summary>
+        /// <returns>A read-only collection of progress messages logged during timeline generation.</returns>
         public ReadOnlyCollection<string> GetTimelineGenerationMessages()
         {
             return _timelineGenerationMessages.AsReadOnly();
         }
+
+        /// <summary>
+        /// Clears all logged progress messages for the timeline generation.
+        /// </summary>
         public void ClearMessages()
         {
             _timelineGenerationMessages.Clear();

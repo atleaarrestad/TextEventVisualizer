@@ -6,16 +6,33 @@ using System.Diagnostics;
 
 namespace TextEventVisualizer.Services
 {
+    /// <summary>
+    /// Provides services to extract and manage articles from JSON data files.
+    /// </summary>
     public class JsonService : IJsonService
     {
         private readonly IArticleService articleService;
+
+        /// <summary>
+        /// Delegate for logging messages during processing.
+        /// </summary>
+        /// <param name="message">The message to log.</param>
         public delegate Task LoggerDelegate(string message);
 
+        /// <summary>
+        /// Initializes a new instance of the JsonService class.
+        /// </summary>
+        /// <param name="articleService">Service used for article data operations.</param>
         public JsonService(IArticleService articleService)
         {
             this.articleService = articleService;
         }
 
+        /// <summary>
+        /// Asynchronously extracts articles from a JSON file and adds them to the database in batches.
+        /// </summary>
+        /// <param name="loggerDelegate">A delegate to log progress and errors.</param>
+        /// <returns>A task representing the asynchronous operation.</returns>
         public async Task ExtractArticlesFromJsonFile(LoggerDelegate loggerDelegate)
         {
             var stopWatch = new Stopwatch();
@@ -75,6 +92,11 @@ namespace TextEventVisualizer.Services
             }
         }
 
+        /// <summary>
+        /// Validates if the given article has all necessary information filled.
+        /// </summary>
+        /// <param name="article">The article to validate.</param>
+        /// <returns>True if the article is valid, otherwise false.</returns>
         private bool IsArticleValid(Article article)
         {
             return
@@ -84,6 +106,11 @@ namespace TextEventVisualizer.Services
                 && !string.IsNullOrWhiteSpace(article.Description);
         }
 
+        /// <summary>
+        /// Converts a date string from American EDT to UTC.
+        /// </summary>
+        /// <param name="dateString">The date string to convert.</param>
+        /// <returns>The UTC date if conversion is successful, otherwise null.</returns>
         private DateTime? ConvertAmericanEdtToUtc(string dateString)
         {
             DateTime edtDate;

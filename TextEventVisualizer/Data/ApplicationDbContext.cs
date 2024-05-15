@@ -13,7 +13,7 @@ namespace TextEventVisualizer.Data
         public DbSet<TimelineRequest> TimelineRequests { get; set; }
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
-
+        // SQLite database relations setup
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Article>()

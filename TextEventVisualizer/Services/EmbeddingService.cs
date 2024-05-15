@@ -7,17 +7,30 @@ using TextEventVisualizer.Models.Response;
 
 namespace TextEventVisualizer.Services
 {
+    /// <summary>
+    /// Service for managing embeddings, providing methods to interact with the Weaviate vector database.
+    /// </summary>
     public class EmbeddingService : IEmbeddingService
     {
         private readonly HttpClient client;
         private readonly IArticleService ArticleService;
         private readonly string weaviateEndpoint = "http://localhost:8080/v1";
+
+        /// <summary>
+        /// Initializes a new instance of the EmbeddingService with specified HTTP client factory and article service.
+        /// </summary>
+        /// <param name="httpClientFactory">The factory to create HTTP client instances.</param>
+        /// <param name="articleService">The service handling articles.</param>
         public EmbeddingService(IHttpClientFactory httpClientFactory, IArticleService articleService)
         {
             client = httpClientFactory.CreateClient();
             ArticleService = articleService;
         }
 
+        /// <summary>
+        /// Sets up the schema for embeddings in the Weaviate database asynchronously.
+        /// </summary>
+        /// <returns>A task representing the asynchronous operation of creating a schema.</returns>
         public async Task SetupSchemaAsync()
         {
             var schema = new
@@ -68,6 +81,10 @@ namespace TextEventVisualizer.Services
             }
         }
 
+        /// <summary>
+        /// Checks if the Embedding schema exists in the Weaviate database asynchronously.
+        /// </summary>
+        /// <returns>A boolean indicating the existence of the schema.</returns>
         public async Task<bool> SchemaExist()
         {
             try
@@ -84,6 +101,13 @@ namespace TextEventVisualizer.Services
             }
         }
 
+        /// <summary>
+        /// Inserts embedding data asynchronously based on the provided text, original ID, and category.
+        /// </summary>
+        /// <param name="text">The content text to be embedded.</param>
+        /// <param name="originalId">The original identifier of the content.</param>
+        /// <param name="category">The category of the embedding.</param>
+        /// <returns>A boolean indicating whether the insertion was successful.</returns>
         public async Task<bool> InsertDataAsync(string text, int originalId, EmbeddingCategory category)
         {
             var data = new
@@ -112,6 +136,13 @@ namespace TextEventVisualizer.Services
             } 
         }
 
+
+        /// <summary>
+        /// Checks asynchronously if an article exists in the database by original ID and category.
+        /// </summary>
+        /// <param name="originalId">The original identifier of the article.</param>
+        /// <param name="category">The category of the embedding.</param>
+        /// <returns>A boolean indicating whether the article exists.</returns>
         public async Task<bool> ArticleExistsAsync(int originalId, EmbeddingCategory category)
         {
             string graphqlQuery = $@"
@@ -163,7 +194,11 @@ namespace TextEventVisualizer.Services
             }
         }
 
-
+        /// <summary>
+        /// Queries embedding data asynchronously based on specified criteria.
+        /// </summary>
+        /// <param name="request">The parameters defining the query, including biases, prompts, and category filtering.</param>
+        /// <returns>A list of embeddings that match the query criteria.</returns>
         public async Task<List<Embedding>> QueryDataAsync(EmbeddingQueryRequest request)
         {
             string graphqlQuery = $@"
@@ -227,6 +262,11 @@ namespace TextEventVisualizer.Services
             }
         }
 
+        /// <summary>
+        /// Retrieves the count of embeddings in a specified category asynchronously.
+        /// </summary>
+        /// <param name="category">The category of embeddings to count.</param>
+        /// <returns>The count of embedding entries within the specified category.</returns>
         public async Task<int> GetEmbeddingEntriesCountInCategory(EmbeddingCategory category)
         {
             var query = new
@@ -265,6 +305,10 @@ namespace TextEventVisualizer.Services
             }
         }
 
+        /// <summary>
+        /// Checks if the Weaviate endpoint is reachable asynchronously.
+        /// </summary>
+        /// <returns>A boolean indicating whether the Weaviate endpoint is responsive.</returns>
         public async Task<bool> Ping()
         {
             try
@@ -285,6 +329,10 @@ namespace TextEventVisualizer.Services
             }
         }
 
+        /// <summary>
+        /// Returns the API endpoint used by the EmbeddingService.
+        /// </summary>
+        /// <returns>The URL of the Weaviate endpoint.</returns>
         public string GetAPIEndpoint()
         {
             return weaviateEndpoint;
